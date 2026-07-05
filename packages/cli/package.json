@@ -1,0 +1,21 @@
+{
+  "name": "@neocode/cli",
+  "module": "src/index.tsx",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --watch src/index.tsx"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/react": "^19.2.17"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@opentui/core": "^0.4.3",
+    "@opentui/react": "^0.4.3",
+    "react": "^19.2.6"
+  }
+}
