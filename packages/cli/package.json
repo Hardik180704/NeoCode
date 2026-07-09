@@ -16,6 +16,8 @@
   "dependencies": {
     "@opentui/core": "^0.4.3",
     "@opentui/react": "^0.4.3",
-    "react": "^19.2.6"
+    "opentui-spinner": "^0.0.7",
+    "react": "^19.2.6",
+    "react-router": "^8.2.0"
   }
 }
