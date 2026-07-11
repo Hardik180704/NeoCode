@@ -3,7 +3,8 @@ import {
     useContext,
     useRef,
     useState,
-    useCallback
+    useCallback,
+    useMemo
 } from "react";
 import type { ReactNode } from "react";
 import { useTerminalDimensions } from "@opentui/react";
@@ -61,9 +62,9 @@ export function ToastProvider({ children }: ToastProviderProps) {
         }, duration).unref();
     }, [clearCurrentTimeout]);
 
-    const value: ToastContextValue = {
+    const value = useMemo(() => ({
         show,
-    };
+    }), [show]);
 
     return (
         <ToastContext.Provider value={value}>
@@ -114,12 +115,6 @@ function Toast({ currentToast }: ToastProps) {
                 ...SplitBorder.customBorderChars,
                 vertical: "┃",
             }}
-        >
-            <box flexDirection="column" gap={1} width="100%">
-                <text fg="#E1E1E1" wrapMode="word" width="100%">
-                    {currentToast.message}
-                </text>
-            </box>
-        </box>
+        ><box flexDirection="column" gap={1} width="100%"><text fg="#E1E1E1" wrapMode="word" width="100%">{currentToast.message}</text></box></box>
     );
 }

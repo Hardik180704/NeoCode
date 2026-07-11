@@ -1,5 +1,5 @@
 import { TextAttributes } from "@opentui/core";
-import type { ReactNode } from "react";
+import { Children, type ReactNode } from "react";
 import { InputBar } from "./input-bar";
 import { Spinner } from "./spinner";
 
@@ -16,6 +16,10 @@ export function SessionShell({
   inputDisabled = false,
   loading = false,
 }: Props) {
+  const cleanChildren = Children.toArray(children).filter(
+    (child) => typeof child !== "string"
+  );
+
   return (
     <box
       flexDirection="column"
@@ -27,7 +31,7 @@ export function SessionShell({
       gap={1}
     >
       <scrollbox flexGrow={1} width="100%" stickyScroll stickyStart="bottom">
-        <box gap={1}>{children}</box>
+        <box gap={1}>{cleanChildren}</box>
       </scrollbox>
       <box flexShrink={0}>
         <InputBar onSubmit={onSubmit} disabled={inputDisabled} />
@@ -41,9 +45,7 @@ export function SessionShell({
         gap={2}
         paddingLeft={1}
       >
-        <box flexDirection="row" alignItems="center" gap={2}>
-          {loading ? <Spinner /> : null}
-        </box>
+        <box flexDirection="row" alignItems="center" gap={2}>{loading && <Spinner />}</box>
 
         <box flexDirection="row" gap={1} flexShrink={0} marginLeft="auto">
           <text>tab</text>

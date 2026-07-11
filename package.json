@@ -1,8 +1,11 @@
 {
   "name": "neocode",
   "version": "1.0.0",
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
+    "dev:server": "bun run --hot  packages/server/src/index.ts",
     "dev:cli": "bun run --watch packages/cli/src/index.tsx"
   }
 }
