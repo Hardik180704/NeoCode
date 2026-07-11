@@ -2,7 +2,6 @@ import { useCallback } from "react";
 import { useNavigate } from "react-router";
 import { Header } from "../components/header";
 import { InputBar } from "../components/input-bar";
-import { Spinner } from "../components/spinner";
 
 export function Home() {
   const navigate = useNavigate();
