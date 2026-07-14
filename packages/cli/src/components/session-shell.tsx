@@ -8,6 +8,7 @@ type Props = {
   onSubmit: (text: string) => void;
   inputDisabled?: boolean;
   loading?: boolean;
+  interruptible?: boolean;
 };
 
 export function SessionShell({
@@ -15,6 +16,7 @@ export function SessionShell({
   onSubmit,
   inputDisabled = false,
   loading = false,
+  interruptible = false,
 }: Props) {
   const cleanChildren = Children.toArray(children).filter(
     (child) => typeof child !== "string"
@@ -45,7 +47,14 @@ export function SessionShell({
         gap={2}
         paddingLeft={1}
       >
-        <box flexDirection="row" alignItems="center" gap={2}>{loading && <Spinner />}</box>
+        <box flexDirection="row" alignItems="center" gap={2}>
+          {loading ? (
+            <>
+              <Spinner />
+              {interruptible ? <text>esc to interrupt</text> : null}
+            </>
+          ) : null}
+        </box>
 
         <box flexDirection="row" gap={1} flexShrink={0} marginLeft="auto">
           <text>tab</text>
