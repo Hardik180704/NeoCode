@@ -13,6 +13,8 @@
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.14",
     "@ai-sdk/openai": "^4.0.13",
+    "@ai-sdk/provider": "^4.0.3",
+    "@ai-sdk/provider-utils": "^5.0.10",
     "@hono/zod-validator": "^0.8.0",
     "@neocode/database": "workspace:*",
     "@neocode/shared": "workspace:*",

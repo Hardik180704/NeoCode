@@ -1,18 +1,20 @@
 import { useTheme } from "../../providers/theme";
 import { EmptyBorder } from "../border";
+import type { mode as Mode } from "@neocode/database/enums";
 
 type Props = {
   message: string;
+  mode: Mode;
 };
 
-export function UserMessage({ message }: Props) {
+export function UserMessage({ message, mode }: Props) {
   const { colors } = useTheme();
 
   return (
     <box width="100%" alignItems="center">
       <box
         border={["left"]}
-        borderColor={colors.primary}
+        borderColor={mode === "PLAN" ? colors.planMode : colors.primary}
         width="100%"
         customBorderChars={{
           ...EmptyBorder,

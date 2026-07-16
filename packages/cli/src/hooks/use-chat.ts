@@ -11,7 +11,19 @@ import {
 } from "@neocode/shared";
 import { handle } from "hono/cloudflare-pages";
 
-export type ClientMessagePart = { type: "text"; text: string };
+export type ClientToolCallPart = {
+    type: "tool-call";
+    id: string;
+    name: string;
+    args: Record<string, unknown>;
+    result?: string;
+    status: "calling" | "done";
+}
+
+export type ClientMessagePart =
+    | { type: "reasoning"; text: string }
+    | ClientToolCallPart
+    | { type: "text"; text: string }
 
 export type Message =
     | {
@@ -186,6 +198,38 @@ export function useChat(
             }
 
             switch (event.type) {
+                case "reasoning-delta": {
+                    const last = parts[parts.length - 1];
+                    if (last && last.type === "reasoning") {
+                        last.text += event.text;
+                    } else {
+                        parts.push({ type: "reasoning", text: event.text });
+                    }
+                    emitParts(activeStream.requestId, parts);
+                    break;
+                }
+                case "tool-call": {
+                    parts.push({
+                        type: "tool-call",
+                        id: event.toolCallId,
+                        name: event.toolName,
+                        args: event.args,
+                        status: "calling"
+                    });
+                    emitParts(activeStream.requestId, parts);
+                    break;
+                }
+                case "tool-result": {
+                    const tc = parts.find(
+                        (p): p is ClientToolCallPart => p.type === "tool-call" && p.id === event.toolCallId,
+                    );
+                    if (tc) {
+                        tc.result = event.result;
+                        tc.status = "done";
+                    }
+                    emitParts(activeStream.requestId, parts);
+                    break;
+                }
                 case "text-delta": {
                     const last = parts[parts.length - 1];
                     if (last && last.type === "text") {
