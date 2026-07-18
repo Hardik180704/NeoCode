@@ -35,9 +35,7 @@ export async function connectMcpServer(params: {
         // server cannot fill an unread pipe and deadlock the Neocode request.
         stderr: "ignore",
       }),
-      onUncaughtError: (error) => {
-        console.error(`Uncaught MCP error from ${name}`, error);
-      },
+      onUncaughtError: () => reportUncaughtError(name),
     });
   }
 
@@ -58,8 +56,12 @@ export async function connectMcpServer(params: {
       headers,
       redirect: "error",
     },
-    onUncaughtError: (error) => {
-      console.error(`Uncaught MCP error from ${name}`, error);
-    },
+    onUncaughtError: () => reportUncaughtError(name),
   });
+}
+
+function reportUncaughtError(serverName: string) {
+  // Avoid printing transport objects because they may contain URLs or other
+  // connection details. The request path reports the actionable error safely.
+  console.error(`MCP server ${serverName} reported an uncaught transport error`);
 }

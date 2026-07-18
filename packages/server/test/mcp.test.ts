@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -115,15 +115,21 @@ describe("MCP runtime", () => {
       }),
     );
 
-    const runtime = await createMcpRuntime({
-      cwd,
-      mode: Mode.PLAN,
-      abortSignal: new AbortController().signal,
-    });
+    const errorLog = spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const runtime = await createMcpRuntime({
+        cwd,
+        mode: Mode.PLAN,
+        abortSignal: new AbortController().signal,
+      });
 
-    expect(runtime.tools).toEqual({});
-    expect(runtime.warnings[0]).toContain("MCP server unavailable is unavailable");
-    await runtime.close();
+      expect(runtime.tools).toEqual({});
+      expect(runtime.warnings[0]).toContain("MCP server unavailable is unavailable");
+      expect(errorLog).toHaveBeenCalledTimes(1);
+      await runtime.close();
+    } finally {
+      errorLog.mockRestore();
+    }
   });
 });
 
