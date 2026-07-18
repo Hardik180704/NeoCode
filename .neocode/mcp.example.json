@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "servers": {
+    "example-local-server": {
+      "transport": "stdio",
+      "command": "bunx",
+      "args": ["your-mcp-server-package"],
+      "env": {
+        "PROJECT_ROOT": "${workspaceFolder}",
+        "API_TOKEN": "${env:YOUR_MCP_API_TOKEN}"
+      },
+      "tools": {
+        "read_data": "read",
+        "create_record": "write",
+        "dangerous_operation": "disabled"
+      }
+    },
+    "example-remote-server": {
+      "enabled": false,
+      "transport": "http",
+      "url": "https://example.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:YOUR_MCP_API_TOKEN}"
+      },
+      "tools": {}
+    }
+  }
+}
