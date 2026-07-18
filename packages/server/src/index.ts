@@ -4,6 +4,7 @@ import * as Sentry from "@sentry/hono/bun";
 import { sentry } from "@sentry/hono/bun";
 import sessions from "./routes/sessions";
 import chat from "./routes/chat";
+import mcp from "./routes/mcp";
 
 const app = new Hono();
 
@@ -47,7 +48,10 @@ app.onError((error, c) => {
   }, 500);
 });
 
-const routes = app.route("/sessions", sessions).route("/chat", chat);
+const routes = app
+  .route("/sessions", sessions)
+  .route("/chat", chat)
+  .route("/mcp", mcp);
 
 export type AppType = typeof routes;
 

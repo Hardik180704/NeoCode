@@ -12,7 +12,7 @@ import {
   toolCallArgsSchema,
   messagePartsSchema,
 } from "@neocode/shared";
-import { createTools  } from "../tools";
+import { createToolRuntime } from "../tools";
 import { buildSystemPrompt } from "../system-prompt";
 import { isSupportedChatModel, resolveChatModel } from "../lib/models";
 
@@ -29,6 +29,17 @@ const submitValidator = zValidator("json", submitSchema, (result, c) => {
 });
 
 const activeResumeSessionIds = new Set<string>();
+const MAX_PERSISTED_TOOL_RESULT_CHARS = 50_000;
+
+function serializeToolOutput(output: unknown): string {
+  if (typeof output === "string") return output;
+
+  try {
+    return JSON.stringify(output) ?? String(output);
+  } catch {
+    return String(output);
+  }
+}
 
 // Strip error messages and empty assistant messages from the conversation
 function buildConversationHistory(
@@ -78,7 +89,14 @@ async function streamAIResponse(
 ) {
   const { sessionId, model, cwd,  history, mode, abortController } = params;
   const startTime = Date.now();
-  const tools = cwd ? createTools(cwd, mode) : undefined;
+  const toolRuntime = cwd
+    ? await createToolRuntime({
+        cwd,
+        mode,
+        abortSignal: abortController.signal,
+      })
+    : undefined;
+  const tools = toolRuntime?.tools;
   const parts: MessagePart[] = [];
   const resolvedModel = resolveChatModel(model);
 
@@ -113,7 +131,7 @@ async function streamAIResponse(
   try {
     const result = aiStreamText({
       model: resolvedModel.model,
-      system: buildSystemPrompt({ cwd, mode }),
+      system: buildSystemPrompt({ cwd, mode, toolWarnings: toolRuntime?.warnings }),
       messages: history,
       tools,
       stopWhen: tools ? stepCountIs(50) : undefined,
@@ -166,8 +184,12 @@ async function streamAIResponse(
       }
 
       if (part.type === "tool-result") {
+        const serializedResult = serializeToolOutput(part.output);
         const resultStr =
-          typeof part.output === "string" ? part.output : JSON.stringify(part.output);
+          serializedResult.length > MAX_PERSISTED_TOOL_RESULT_CHARS
+            ? serializedResult.slice(0, MAX_PERSISTED_TOOL_RESULT_CHARS) +
+              `\n... (truncated, ${serializedResult.length} total chars)`
+            : serializedResult;
 
         const tcPart = parts.find(
           (p): p is Extract<MessagePart, { type: "tool-call" }> =>
@@ -250,6 +272,8 @@ async function streamAIResponse(
     }
 
     await stream.writeSSE({ event: "error", data: JSON.stringify(errorEvent) });
+  } finally {
+    await toolRuntime?.close();
   }
 };
 

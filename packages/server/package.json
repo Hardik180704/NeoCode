@@ -8,10 +8,12 @@
   "scripts": {
     "dev": "bun run --hot src/index.ts",
     "build": "bun build src/index.ts --outdir dist --target bun",
+    "test": "bun test",
     "postinstall": "bun run --cwd ../database db:generate"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.14",
+    "@ai-sdk/mcp": "^2.0.15",
     "@ai-sdk/openai": "^4.0.13",
     "@ai-sdk/provider": "^4.0.3",
     "@ai-sdk/provider-utils": "^5.0.10",
