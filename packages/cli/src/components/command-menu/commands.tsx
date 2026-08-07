@@ -1,5 +1,11 @@
 import type { Command } from "./types";
-import { AgentsDialogContent, ThemeDialogContent, SessionsDialogContent, ModelsDialogContent } from "../dialogs";
+import {
+  AgentsDialogContent,
+  ThemeDialogContent,
+  SessionsDialogContent,
+  ModelsDialogContent,
+  McpDialogContent,
+} from "../dialogs";
 import { SUPPORTED_CHAT_MODELS } from "@neocode/shared";
 import { performLogin } from "../../lib/oauth";
 import { clearAuth } from "../../lib/auth";
@@ -48,6 +54,17 @@ export const COMMANDS: Command[] = [
       ctx.dialog.open({
         title: "Sessions",
         children: <SessionsDialogContent />,
+      });
+    },
+  },
+  {
+    name: "mcp",
+    description: "Inspect configured MCP servers and tools",
+    value: "/mcp",
+    action: (ctx) => {
+      ctx.dialog.open({
+        title: "MCP Control Center",
+        children: <McpDialogContent />,
       });
     },
   },
