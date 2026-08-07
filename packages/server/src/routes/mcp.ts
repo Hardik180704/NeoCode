@@ -2,11 +2,13 @@ import { Hono } from "hono";
 import { db } from "@neocode/database/client";
 import { inspectMcpServers } from "../mcp/runtime";
 import { McpConfigError } from "../mcp/config";
+import type { AuthenticatedEnv } from "../middleware/require-auth";
 
-const app = new Hono().get("/:sessionId", async (c) => {
+const app = new Hono<AuthenticatedEnv>().get("/:sessionId", async (c) => {
   const sessionId = c.req.param("sessionId");
+  const userId = c.get("userId");
   const session = await db.session.findUnique({
-    where: { id: sessionId },
+    where: { id: sessionId, userId },
     select: { cwd: true },
   });
 
