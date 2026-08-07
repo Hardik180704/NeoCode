@@ -7,6 +7,7 @@ import sessions from "./routes/sessions";
 import chat from "./routes/chat";
 import mcp from "./routes/mcp";
 import auth from "./routes/auth";
+import neolens from "./routes/neolens";
 
 const app = new Hono();
 
@@ -53,12 +54,14 @@ app.onError((error, c) => {
 app.use("/sessions/*", requireAuth);
 app.use("/chat/*", requireAuth);
 app.use("/mcp/*", requireAuth);
+app.use("/neolens/*", requireAuth);
 
 const routes = app
   .route("/auth", auth)
   .route("/sessions", sessions)
   .route("/chat", chat)
-  .route("/mcp", mcp);
+  .route("/mcp", mcp)
+  .route("/neolens", neolens);
 
 export type AppType = typeof routes;
 

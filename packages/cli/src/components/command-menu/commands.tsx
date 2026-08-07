@@ -5,6 +5,7 @@ import {
   SessionsDialogContent,
   ModelsDialogContent,
   McpDialogContent,
+  NeoLensDialogContent,
 } from "../dialogs";
 import { SUPPORTED_CHAT_MODELS } from "@neocode/shared";
 import { performLogin } from "../../lib/oauth";
@@ -54,6 +55,18 @@ export const COMMANDS: Command[] = [
       ctx.dialog.open({
         title: "Sessions",
         children: <SessionsDialogContent />,
+      });
+    },
+  },
+  {
+    name: "lens",
+    description: "Watch and replay agent activity across the dependency graph",
+    value: "/lens",
+    action: (ctx) => {
+      ctx.dialog.open({
+        title: "NeoLens",
+        size: "fullscreen",
+        children: <NeoLensDialogContent />,
       });
     },
   },

@@ -20,6 +20,8 @@ import { useToast } from "../providers/toast";
 import { getErrorMessage } from "../lib/http-errors";
 import { MessageStatus } from "@neocode/database/enums";
 import { useKeyboardLayer } from "../providers/keyboard-layer";
+import { useDialog } from "../providers/dialog";
+import { NeoLensDialogContent } from "../components/dialogs/neolens-dialog";
 
 type SessionData = InferResponseType<(typeof apiClient.sessions)[":id"]["$get"], 200>;
 
@@ -92,6 +94,7 @@ function SessionChat({ session }: { session: SessionData }) {
   const [initialMessages] = useState(() => mapDbMessages(session.messages));
   const { model, mode } = usePromptConfig();
   const { isTopLayer } = useKeyboardLayer();
+  const dialog = useDialog();
   const { messages, streaming, submit, abort, interrupt } = useChat(session.id, initialMessages);
 
   // Stop the pending reply when the user leaves this session.
@@ -110,7 +113,12 @@ function SessionChat({ session }: { session: SessionData }) {
   return (
     <SessionShell
       onSubmit={(text) => {
-        submit({ userText: text, mode, model });
+        void submit({ userText: text, mode, model });
+        dialog.open({
+          title: "NeoLens",
+          size: "fullscreen",
+          children: <NeoLensDialogContent sessionId={session.id} />,
+        });
       }}
       loading={streaming.status === "streaming"}
       interruptible={streaming.status === "streaming"}

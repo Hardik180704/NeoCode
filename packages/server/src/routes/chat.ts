@@ -16,6 +16,7 @@ import { createToolRuntime } from "../tools";
 import { buildSystemPrompt } from "../system-prompt";
 import { isSupportedChatModel, resolveChatModel } from "../lib/models";
 import type { AuthenticatedEnv } from "../middleware/require-auth";
+import { createNeoLensActivityTracker } from "../neolens/activity";
 
 const submitSchema = z.object({
   content: z.string(),
@@ -100,6 +101,9 @@ async function streamAIResponse(
   const tools = toolRuntime?.tools;
   const parts: MessagePart[] = [];
   const resolvedModel = resolveChatModel(model);
+  const activityTracker = cwd
+    ? createNeoLensActivityTracker(cwd, startTime)
+    : undefined;
 
   const persistInterruptedMessage = async () => {
     const fullText = parts
@@ -167,12 +171,18 @@ async function streamAIResponse(
 
       if (part.type === "tool-call") {
         const args = toolCallArgsSchema.parse(part.input);
+        const activity = activityTracker?.start({
+          toolCallId: part.toolCallId,
+          toolName: part.toolName,
+          args,
+        });
 
         parts.push({
           type: "tool-call",
           id: part.toolCallId,
           name: part.toolName,
           args,
+          ...(activity ? { activity: { started: activity } } : {}),
         });
 
         const event: ChatStreamEvent = {
@@ -182,6 +192,16 @@ async function streamAIResponse(
           args,
         };
         await stream.writeSSE({ event: "tool-call", data: JSON.stringify(event) });
+        if (activity) {
+          const activityEvent: ChatStreamEvent = {
+            type: "neolens-activity",
+            event: activity,
+          };
+          await stream.writeSSE({
+            event: "neolens-activity",
+            data: JSON.stringify(activityEvent),
+          });
+        }
       }
 
       if (part.type === "tool-result") {
@@ -199,6 +219,10 @@ async function streamAIResponse(
         if (tcPart) {
           tcPart.result = resultStr;
         }
+        const activity = activityTracker?.complete(part.toolCallId, resultStr);
+        if (tcPart?.activity && activity) {
+          tcPart.activity.completed = activity;
+        }
 
         const event: ChatStreamEvent = {
           type: "tool-result",
@@ -206,6 +230,16 @@ async function streamAIResponse(
           result: resultStr,
         };
         await stream.writeSSE({ event: "tool-result", data: JSON.stringify(event) });
+        if (activity) {
+          const activityEvent: ChatStreamEvent = {
+            type: "neolens-activity",
+            event: activity,
+          };
+          await stream.writeSSE({
+            event: "neolens-activity",
+            data: JSON.stringify(activityEvent),
+          });
+        }
       }
 
       if (part.type === "error") {

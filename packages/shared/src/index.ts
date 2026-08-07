@@ -13,6 +13,10 @@ export {
   messagePartSchema,
   messagePartsSchema,
   chatStreamEventSchema,
+  neoLensActivityEventSchema,
+  neoLensFileStatusSchema,
   type MessagePart,
   type ChatStreamEvent,
+  type NeoLensActivityEvent,
+  type NeoLensFileStatus,
 } from "./schemas";

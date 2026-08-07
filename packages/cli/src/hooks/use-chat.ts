@@ -10,6 +10,7 @@ import {
     type SupportedChatModelId,
 } from "@neocode/shared";
 import { handle } from "hono/cloudflare-pages";
+import { useNeoLens } from "../providers/neolens";
 
 export type ClientToolCallPart = {
     type: "tool-call";
@@ -82,6 +83,7 @@ export function useChat(
     const [streaming, setStreaming] = useState<StreamingState>({
         status: "idle",
     });
+    const { recordActivity } = useNeoLens();
     const activeStreamRef = useRef<ActiveStream | null>(null);
 
     const updateMessages = useCallback((updater: (prev: Message[]) => Message[]) => {
@@ -230,6 +232,10 @@ export function useChat(
                     emitParts(activeStream.requestId, parts);
                     break;
                 }
+                case "neolens-activity": {
+                    recordActivity(sessionId, event.event);
+                    break;
+                }
                 case "text-delta": {
                     const last = parts[parts.length - 1];
                     if (last && last.type === "text") {
@@ -275,7 +281,7 @@ export function useChat(
                 }
             }
         }
-    }, [isActiveRequest, updateMessages, emitParts]);
+    }, [isActiveRequest, updateMessages, emitParts, recordActivity, sessionId]);
 
     const runStream = useCallback(async (
         { mode, model, request }: RunStreamParams
@@ -402,5 +408,4 @@ export function useChat(
 
     return { messages, streaming, submit, abort, interrupt };
 }
-
 
