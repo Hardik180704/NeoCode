@@ -15,12 +15,12 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@neocode/database": "workspace:*",
+    "@ai-sdk/react": "^4.0.61",
     "@neocode/shared": "workspace:*",
     "@opentui/core": "^0.4.3",
     "@opentui/react": "^0.4.3",
+    "ai": "^7.0.58",
     "date-fns": "^4.4.0",
-    "eventsource-parser": "^3.1.0",
     "hono": "^4.12.28",
     "open": "^11.0.0",
     "opentui-spinner": "^0.0.7",

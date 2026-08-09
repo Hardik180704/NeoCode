@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { z } from "zod";
-import { mode as Mode } from "@neocode/database/enums";
+import { Mode, modeSchema } from "@neocode/shared";
 import { useNavigate, useLocation } from "react-router";
 import { SessionShell } from "../components/session-shell";
 import { UserMessage } from "../components/messages";
@@ -10,7 +10,7 @@ import { getErrorMessage } from "../lib/http-errors";
 
 const newSessionStateSchema = z.object({
   message: z.string(),
-  mode: z.enum(Mode),
+  mode: modeSchema,
   model: z.string(),
 })
 
@@ -44,13 +44,6 @@ export function NewSession() {
         const res = await apiClient.sessions.$post({
           json: {
             title: state.message.slice(0, 100),
-            cwd: process.cwd(),
-            initialMessage: {
-              role: "USER",
-              content: state.message,
-              mode: state.mode,
-              model: state.model,
-            },
           },
         });
 
@@ -62,7 +55,7 @@ export function NewSession() {
         const session = await res.json();
         navigate(
           `/sessions/${session.id}`,
-          { replace: true, state: { session } }
+          { replace: true, state: { session, initialPrompt: state } }
         );
       } catch (err) {
         if (ignore) return;
