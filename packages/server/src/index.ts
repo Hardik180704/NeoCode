@@ -7,6 +7,7 @@ import sessions from "./routes/sessions";
 import chat from "./routes/chat";
 import mcp from "./routes/mcp";
 import auth from "./routes/auth";
+import billing from "./routes/billing";
 
 const app = new Hono();
 
@@ -53,12 +54,15 @@ app.onError((error, c) => {
 app.use("/sessions/*", requireAuth);
 app.use("/chat/*", requireAuth);
 app.use("/mcp/*", requireAuth);
+app.use("/billing/checkout", requireAuth);
+app.use("/billing/portal", requireAuth);
 
 const routes = app
   .route("/auth", auth)
   .route("/sessions", sessions)
   .route("/chat", chat)
-  .route("/mcp", mcp);
+  .route("/mcp", mcp)
+  .route("/billing", billing);
 
 export type AppType = typeof routes;
 
