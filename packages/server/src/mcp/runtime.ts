@@ -1,5 +1,4 @@
-import type { mode as Mode } from "@neocode/database/enums";
-import { mode as ModeValue } from "@neocode/database/enums";
+import { Mode, type ModeType } from "@neocode/shared";
 import type { ListToolsResult, MCPClient } from "@ai-sdk/mcp";
 import { connectMcpServer } from "./connect";
 import {
@@ -51,7 +50,7 @@ type McpDiscoveredTool = Awaited<ReturnType<MCPClient["tools"]>>[string];
 
 export async function createMcpRuntime(params: {
   cwd: string;
-  mode: Mode;
+  mode: ModeType;
   abortSignal: AbortSignal;
 }): Promise<McpRuntime> {
   const { cwd, mode, abortSignal } = params;
@@ -169,7 +168,7 @@ export async function inspectMcpServers(cwd: string): Promise<McpInspection> {
 function filterDefinitions(
   definitions: ListToolsResult,
   config: McpServerConfig,
-  mode: Mode,
+  mode: ModeType,
 ): ListToolsResult {
   return {
     ...definitions,
@@ -177,7 +176,7 @@ function filterDefinitions(
       .filter((tool) => {
         const access = getToolAccess(config, tool.name);
         if (access === "disabled") return false;
-        return mode === ModeValue.BUILD || access === "read";
+        return mode === Mode.BUILD || access === "read";
       })
       .slice(0, MAX_TOOLS_PER_SERVER),
   };
