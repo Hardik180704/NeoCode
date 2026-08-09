@@ -21,6 +21,7 @@
     "@hono/zod-validator": "^0.8.0",
     "@neocode/database": "workspace:*",
     "@neocode/shared": "workspace:*",
+    "@polar-sh/sdk": "^0.49.0",
     "@sentry/bun": "^10.65.0",
     "@sentry/hono": "^10.65.0",
     "ai": "^7.0.26",
