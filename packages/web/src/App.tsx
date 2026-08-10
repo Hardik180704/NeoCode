@@ -177,6 +177,140 @@ function MacFrame({ children, scene, title, variant = "" }: MacFrameProps) {
   );
 }
 
+function TiltedMacFrame({ children, scene, title, variant = "" }: MacFrameProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
+  const rotateX = useMotionValue(0);
+  const rotateY = useMotionValue(0);
+  const glareOpacity = useMotionValue(0);
+  const glareX = useMotionValue(50);
+  const glareY = useMotionValue(50);
+
+  const springRotateX = useSpring(rotateX, { stiffness: 180, damping: 24 });
+  const springRotateY = useSpring(rotateY, { stiffness: 180, damping: 24 });
+  const springGlareOpacity = useSpring(glareOpacity, { stiffness: 200, damping: 26 });
+
+  const glareBackground = useMotionTemplate`radial-gradient(450px circle at ${glareX}% ${glareY}%, rgba(255, 255, 255, 0.16) 0%, rgba(86, 214, 194, 0.08) 45%, rgba(0, 0, 0, 0) 80%)`;
+
+  function handlePointerMove(e: ReactPointerEvent<HTMLDivElement>) {
+    if (reduceMotion || e.pointerType === "touch") return;
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+
+    rotateX.set(((y - centerY) / centerY) * -6);
+    rotateY.set(((x - centerX) / centerX) * 6);
+    glareX.set((x / rect.width) * 100);
+    glareY.set((y / rect.height) * 100);
+    glareOpacity.set(1);
+  }
+
+  function handlePointerLeave() {
+    rotateX.set(0);
+    rotateY.set(0);
+    glareOpacity.set(0);
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className="tilted-frame-wrap"
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
+    >
+      <motion.div
+        style={{
+          rotateX: springRotateX,
+          rotateY: springRotateY,
+          transformStyle: "preserve-3d",
+          width: "100%",
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
+        <MacFrame scene={scene} title={title} variant={variant}>
+          <motion.div className="tilted-glare" style={{ backgroundImage: glareBackground, opacity: springGlareOpacity }} aria-hidden="true" />
+          {children}
+        </MacFrame>
+      </motion.div>
+    </div>
+  );
+}
+
+function HeroDataParticles() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    if (reduceMotion) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let animationFrameId: number;
+    let width = (canvas.width = canvas.parentElement?.clientWidth || window.innerWidth);
+    let height = (canvas.height = canvas.parentElement?.clientHeight || 600);
+
+    const handleResize = () => {
+      if (!canvas.parentElement) return;
+      width = canvas.width = canvas.parentElement.clientWidth;
+      height = canvas.height = canvas.parentElement.clientHeight;
+    };
+    window.addEventListener("resize", handleResize);
+
+    const particles: Array<{ x: number; y: number; vx: number; vy: number; radius: number; alpha: number; color: string }> = [];
+    const colors = ["#56d6c4", "#89b4fa", "#cf8ef4"];
+
+    for (let i = 0; i < 30; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.35,
+        radius: Math.random() * 1.6 + 0.8,
+        alpha: Math.random() * 0.35 + 0.1,
+        color: colors[Math.floor(Math.random() * colors.length)],
+      });
+    }
+
+    const render = () => {
+      ctx.clearRect(0, 0, width, height);
+      particles.forEach((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0) p.x = width;
+        if (p.x > width) p.x = 0;
+        if (p.y < 0) p.y = height;
+        if (p.y > height) p.y = 0;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.alpha;
+        ctx.fill();
+      });
+      animationFrameId = requestAnimationFrame(render);
+    };
+    render();
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [reduceMotion]);
+
+  return (
+    <div className="hero-particles-bg" aria-hidden="true">
+      <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block" }} />
+    </div>
+  );
+}
+
 function PromptMockup() {
   const activePrompt = useCycle(promptExamples.length, 3400);
 
@@ -210,6 +344,7 @@ function PromptMockup() {
     </MacFrame>
   );
 }
+
 
 const commands = [
   ["/new", "Start a new conversation"],
@@ -540,13 +675,15 @@ function AnimatedSectionHeading({ children, id, className = "" }: AnimatedSectio
 
 function Hero() {
   return (
-    <section className="hero section-shell" id="top">
+    <section className="hero section-shell" id="top" style={{ position: "relative" }}>
       <HeroBeams />
+      <HeroDataParticles />
       <motion.div
         className="hero-copy"
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
+        style={{ position: "relative", zIndex: 1 }}
       >
         <span className="eyebrow"><i /> TERMINAL AGENT FOR COMPLEX REPOSITORIES</span>
         <HeroHoverHeading />
@@ -574,6 +711,7 @@ function Hero() {
         initial={{ opacity: 0, y: 44 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.85, delay: 0.15 }}
+        style={{ position: "relative", zIndex: 1 }}
       >
         <PromptMockup />
       </motion.div>
@@ -582,21 +720,44 @@ function Hero() {
 }
 
 const capabilityItems = [
-  ["01", "ASK", "Understand the codebase"],
-  ["02", "INSPECT", "Read files and tool activity"],
-  ["03", "BUILD", "Apply project changes"],
-  ["04", "NEOLENS", "Replay dependency activity"],
+  { number: "01", label: "ASK", description: "Understand the codebase instantly with deep natural language queries.", icon: "→" },
+  { number: "02", label: "INSPECT", description: "Read files and observe every tool call in real-time.", icon: "◎" },
+  { number: "03", label: "BUILD", description: "Apply changes across the project with full diff previews.", icon: "⬡" },
+  { number: "04", label: "NEOLENS", description: "Replay dependency activity across your repository graph.", icon: "⟳" },
 ] as const;
+
+function SpotlightBentoCard({ number, label, description, icon }: { number: string; label: string; description: string; icon: string }) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const spotlightBg = useMotionTemplate`radial-gradient(280px circle at ${mouseX}px ${mouseY}px, rgba(86, 214, 194, 0.12) 0%, rgba(137, 180, 250, 0.06) 50%, transparent 80%)`;
+
+  function handlePointerMove(e: ReactPointerEvent<HTMLDivElement>) {
+    if (reduceMotion) return;
+    const rect = cardRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    mouseX.set(e.clientX - rect.left);
+    mouseY.set(e.clientY - rect.top);
+  }
+
+  return (
+    <div ref={cardRef} className="bento-card" onPointerMove={handlePointerMove}>
+      <motion.div className="bento-spotlight" style={{ backgroundImage: spotlightBg }} aria-hidden="true" />
+      <div className="bento-card-content">
+        <span>{number}</span>
+        <strong>{icon} {label}</strong>
+        <p>{description}</p>
+      </div>
+    </div>
+  );
+}
 
 function CapabilityRail() {
   return (
     <section className="capability-rail section-shell" aria-label="NeoCode capabilities">
-      {capabilityItems.map(([number, label, description]) => (
-        <div className="capability-item" key={label}>
-          <span>{number}</span>
-          <strong>{label}</strong>
-          <p>{description}</p>
-        </div>
+      {capabilityItems.map((item) => (
+        <SpotlightBentoCard key={item.label} {...item} />
       ))}
     </section>
   );
