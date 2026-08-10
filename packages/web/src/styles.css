@@ -210,6 +210,44 @@ nav a:hover, nav a:focus-visible { color: var(--primary); }
   will-change: opacity, background-image;
 }
 
+/* Animated Section Headings - Light Sweep Only */
+.animated-heading-wrap {
+  position: relative;
+  isolation: isolate;
+  display: inline-block;
+}
+
+.animated-heading-base {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+}
+
+/* Light sweep beam across text on scroll entry */
+.animated-heading-sweep {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: inline-block;
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(243, 247, 255, 0.95) 25%,
+    rgba(86, 214, 194, 0.95) 50%,
+    rgba(137, 180, 250, 0.9) 75%,
+    transparent 100%
+  );
+  background-size: 220% 100%;
+  pointer-events: none;
+  will-change: background-position, opacity;
+}
+
+
+
 .hero-copy > p {
   max-width: 720px;
   margin: 0;

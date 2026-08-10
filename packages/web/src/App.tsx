@@ -510,6 +510,34 @@ function HeroHoverHeading() {
   );
 }
 
+type AnimatedSectionHeadingProps = {
+  children: ReactNode;
+  id?: string;
+  className?: string;
+};
+
+function AnimatedSectionHeading({ children, id, className = "" }: AnimatedSectionHeadingProps) {
+  const reduceMotion = useReducedMotion();
+
+  return (
+    <h2 id={id} className={`animated-heading-wrap ${className}`.trim()}>
+      <span className="animated-heading-base">{children}</span>
+      {!reduceMotion && (
+        <motion.span
+          aria-hidden="true"
+          className="animated-heading-sweep"
+          initial={{ backgroundPosition: "180% 0", opacity: 0 }}
+          whileInView={{ backgroundPosition: "0% 0", opacity: 1 }}
+          viewport={{ once: true, amount: 0.35 }}
+          transition={{ duration: 1.25, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {children}
+        </motion.span>
+      )}
+    </h2>
+  );
+}
+
 function Hero() {
   return (
     <section className="hero section-shell" id="top">
@@ -518,26 +546,34 @@ function Hero() {
         className="hero-copy"
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.7 }}
       >
-        <span className="eyebrow">OPEN-SOURCE TERMINAL CLIENT</span>
+        <span className="eyebrow"><i /> TERMINAL AGENT FOR COMPLEX REPOSITORIES</span>
         <HeroHoverHeading />
-        <p>Ask questions, inspect files, plan changes, and switch to BUILD mode when you want NeoCode to edit.</p>
+        <p>
+          NeoCode brings deep repository understanding, visible tool execution, MCP integrations, and interactive past-activity inspection right into your terminal shell.
+        </p>
         <div className="hero-actions">
-          <a className="button button-primary" href="#install">INSTALL NEOCODE <Icon name="arrow" /></a>
-          <a className="button button-secondary" href={GITHUB_URL} target="_blank" rel="noreferrer"><MarkGithubIcon aria-hidden="true" size={18} /> VIEW ON GITHUB</a>
+          <a className="button button-primary" href="#install">
+            <span>GET STARTED</span>
+            <Icon name="arrow" />
+          </a>
+          <a className="button button-secondary" href={GITHUB_URL} target="_blank" rel="noreferrer">
+            <MarkGithubIcon size={18} />
+            <span>VIEW ON GITHUB</span>
+          </a>
         </div>
         <div className="hero-facts" aria-label="NeoCode availability">
-          <span>MIT LICENSE</span>
-          <span>MACOS / LINUX / WINDOWS</span>
-          <span>RUNS AS <code>NEOCODE</code></span>
+          <span><b>MACOS</b> / <b>LINUX</b> / <b>WINDOWS</b></span>
+          <span><b>MIT</b> LICENSED</span>
+          <span><b>MCP</b> COMPATIBLE</span>
         </div>
       </motion.div>
       <motion.div
         className="hero-mockup"
-        initial={{ opacity: 0, y: 45, scale: 0.985 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ delay: 0.16, duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
+        initial={{ opacity: 0, y: 44 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.85, delay: 0.15 }}
       >
         <PromptMockup />
       </motion.div>
@@ -583,7 +619,7 @@ function TourSection({ id, number, title, copy, points, mockup, reverse = false 
     <section className={reverse ? "tour-row tour-row-reverse" : "tour-row"} id={id} aria-labelledby={titleId}>
       <motion.div className="tour-copy" initial={{ opacity: 0, y: 22 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.25 }}>
         <span className="tour-number">{number}</span>
-        <h2 id={titleId}>{title}</h2>
+        <AnimatedSectionHeading id={titleId}>{title}</AnimatedSectionHeading>
         <p>{copy}</p>
         <ul>{points.map((point) => <li key={point}>{point}</li>)}</ul>
       </motion.div>
@@ -599,7 +635,7 @@ function ProductTour() {
     <div className="product-tour section-shell" id="product">
       <div className="tour-intro">
         <span className="eyebrow">THE INTERFACE</span>
-        <h2>See NeoCode<br />at work.</h2>
+        <AnimatedSectionHeading>See NeoCode<br />at work.</AnimatedSectionHeading>
         <p>Four interface states reproduced from the terminal application.</p>
       </div>
       <TourSection
@@ -652,7 +688,7 @@ function Install() {
     <section className="install section-shell" id="install">
       <div className="install-copy">
         <span className="eyebrow">INSTALLATION</span>
-        <h2>Install NeoCode.</h2>
+        <AnimatedSectionHeading>Install NeoCode.</AnimatedSectionHeading>
         <p>Install the standalone binary, open a project directory, and run <code>neocode</code>.</p>
       </div>
       <div className="install-panel">
