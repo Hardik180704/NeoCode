@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - run: bun install --frozen-lockfile
+      - run: bun run --cwd packages/database db:generate
+      - run: bun test
+      - run: bun packages/cli/node_modules/typescript/bin/tsc --noEmit -p packages/shared/tsconfig.json
+      - run: bun packages/cli/node_modules/typescript/bin/tsc --noEmit -p packages/database/tsconfig.json
+      - run: bun packages/cli/node_modules/typescript/bin/tsc --noEmit -p packages/server/tsconfig.json
+      - run: bun packages/cli/node_modules/typescript/bin/tsc --noEmit -p packages/cli/tsconfig.json
+      - run: bun run --cwd packages/server build
+      - run: bun run --cwd packages/cli build
+      - run: shellcheck install.sh scripts/package-release.sh
+      - name: Compile and smoke-test Linux executable
+        run: |
+          version="$(bun -e 'console.log(require("./packages/cli/package.json").version)')"
+          bun scripts/build-release.ts bun-linux-x64-baseline
+          bun scripts/smoke-release.ts artifacts/linux-x64/neocode "$version"
+
+  windows-installer-syntax:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse PowerShell installer
+        shell: pwsh
+        run: '[scriptblock]::Create((Get-Content -Raw install.ps1)) | Out-Null'

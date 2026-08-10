@@ -29,6 +29,7 @@ export {
 
 export {
   buildTypeScriptDependencyGraph,
+  assertSafeGraphRoot,
   extractTypeScriptImports,
   resolveImportPath,
   type NeoLensExternalNode,

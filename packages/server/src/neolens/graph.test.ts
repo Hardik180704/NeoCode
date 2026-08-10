@@ -1,14 +1,20 @@
 import { describe, expect, test } from "bun:test";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   buildTypeScriptDependencyGraph,
+  assertSafeGraphRoot,
   extractTypeScriptImports,
   resolveImportPath,
 } from "./graph";
 
 describe("TypeScript dependency graph", () => {
+  test("rejects broad user and filesystem roots", () => {
+    expect(() => assertSafeGraphRoot(homedir())).toThrow("project directory");
+    expect(() => assertSafeGraphRoot("/")).toThrow("project directory");
+  });
+
   test("extracts static, dynamic, re-export, and CommonJS imports", () => {
     const imports = extractTypeScriptImports(`
       import type { User } from "./types";

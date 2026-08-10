@@ -1,5 +1,6 @@
 import open from "open";
 import { saveAuth } from "./auth";
+import { getApiUrl } from "./config";
 
 const LOGIN_TIMEOUT_MS = 5 * 60 * 1000;
 
@@ -40,16 +41,15 @@ function getErrorMessage(error: unknown) {
 }
 
 export async function performLogin() {
-  const clerkFrontendApi = process.env.CLERK_FRONTEND_API;
-  const clientId = process.env.CLERK_OAUTH_CLIENT_ID;
-  const apiUrl = process.env.API_URL ?? "http://localhost:3000";
-
-  if (!clerkFrontendApi) {
-    throw new Error("CLERK_FRONTEND_API not set");
+  const apiUrl = getApiUrl();
+  const configResponse = await fetch(`${apiUrl}/auth/config`);
+  if (!configResponse.ok) {
+    throw new Error("Failed to load authentication configuration");
   }
-  if (!clientId) {
-    throw new Error("CLERK_OAUTH_CLIENT_ID not set");
-  }
+  const { clerkFrontendApi, clientId } = await configResponse.json() as {
+    clerkFrontendApi: string;
+    clientId: string;
+  };
 
   const nonce = crypto.randomUUID();
   const codeVerifier = toBase64Url(

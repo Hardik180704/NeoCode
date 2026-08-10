@@ -10,6 +10,7 @@
     },
     "packages/cli": {
       "name": "@neocode/cli",
+      "version": "0.1.0",
       "dependencies": {
         "@ai-sdk/react": "^4.0.61",
         "@neocode/shared": "workspace:*",
@@ -42,6 +43,7 @@
         "dotenv": "^17.4.2",
       },
       "devDependencies": {
+        "@types/bun": "latest",
         "@types/node": "^26.1.1",
         "prisma": "^7.8.0",
       },
@@ -75,6 +77,9 @@
       "dependencies": {
         "ai": "^7.0.58",
         "zod": "^4.4.3",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
       },
     },
   },
