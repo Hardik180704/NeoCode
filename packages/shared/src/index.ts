@@ -26,3 +26,13 @@ export {
   type NeoLensActivityEvent,
   type NeoLensFileStatus,
 } from "./schemas";
+
+export {
+  buildTypeScriptDependencyGraph,
+  extractTypeScriptImports,
+  resolveImportPath,
+  type NeoLensExternalNode,
+  type NeoLensFileNode,
+  type NeoLensGraph,
+  type NeoLensGraphEdge,
+} from "./neolens-graph";
