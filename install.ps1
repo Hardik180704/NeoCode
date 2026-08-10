@@ -5,6 +5,16 @@ param(
 
 $ErrorActionPreference = "Stop"
 $Repository = if ($env:NEOCODE_REPOSITORY) { $env:NEOCODE_REPOSITORY } else { "Hardik180704/NeoCode" }
+$Headers = @{
+  "User-Agent" = "NeoCode-Installer"
+  "Accept" = "application/vnd.github+json"
+}
+
+try {
+  [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+} catch {
+  # PowerShell Core manages TLS automatically.
+}
 
 $Architecture = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
 switch ($Architecture) {
@@ -14,24 +24,44 @@ switch ($Architecture) {
 }
 
 if ($Version -eq "latest") {
-  $Release = Invoke-RestMethod "https://api.github.com/repos/$Repository/releases/latest"
+  try {
+    $Release = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repository/releases/latest" -Headers $Headers
+  } catch {
+    throw "Unable to resolve the latest NeoCode release from GitHub for $Repository. Check your network connection or download a specific release from https://github.com/$Repository/releases."
+  }
   $Tag = $Release.tag_name
 } else {
   $Tag = if ($Version.StartsWith("v")) { $Version } else { "v$Version" }
 }
 
-if (-not $Tag.StartsWith("v")) { throw "Invalid NeoCode release tag: $Tag" }
+if ([string]::IsNullOrWhiteSpace($Tag) -or -not $Tag.StartsWith("v")) {
+  throw "Invalid NeoCode release tag received from GitHub: '$Tag'"
+}
 $ResolvedVersion = $Tag.Substring(1)
 $Asset = "neocode-v$ResolvedVersion-$Target.zip"
 $BaseUrl = "https://github.com/$Repository/releases/download/$Tag"
+$AssetUrl = "$BaseUrl/$Asset"
+$ChecksumsUrl = "$BaseUrl/SHA256SUMS"
+
+if ($Release -and $Release.assets) {
+  $ReleaseAsset = $Release.assets | Where-Object { $_.name -eq $Asset } | Select-Object -First 1
+  $ChecksumsAsset = $Release.assets | Where-Object { $_.name -eq "SHA256SUMS" } | Select-Object -First 1
+  if ($ReleaseAsset -and $ReleaseAsset.browser_download_url) {
+    $AssetUrl = $ReleaseAsset.browser_download_url
+  }
+  if ($ChecksumsAsset -and $ChecksumsAsset.browser_download_url) {
+    $ChecksumsUrl = $ChecksumsAsset.browser_download_url
+  }
+}
+
 $TemporaryDirectory = Join-Path ([System.IO.Path]::GetTempPath()) ("neocode-" + [guid]::NewGuid())
 
 try {
   New-Item -ItemType Directory -Path $TemporaryDirectory | Out-Null
   $ArchivePath = Join-Path $TemporaryDirectory $Asset
   $ChecksumsPath = Join-Path $TemporaryDirectory "SHA256SUMS"
-  Invoke-WebRequest "$BaseUrl/$Asset" -OutFile $ArchivePath
-  Invoke-WebRequest "$BaseUrl/SHA256SUMS" -OutFile $ChecksumsPath
+  Invoke-WebRequest -Uri $AssetUrl -Headers $Headers -OutFile $ArchivePath
+  Invoke-WebRequest -Uri $ChecksumsUrl -Headers $Headers -OutFile $ChecksumsPath
 
   $ChecksumLine = Get-Content $ChecksumsPath | Where-Object { $_ -match "\s$([regex]::Escape($Asset))$" } | Select-Object -First 1
   if (-not $ChecksumLine) { throw "No checksum was published for $Asset" }
