@@ -133,7 +133,9 @@ jobs:
       - name: Smoke-test in Alpine Linux
         run: |
           chmod +x smoke/neocode
-          docker run --rm -v "$PWD/smoke:/work" alpine:latest /work/neocode --version | grep "neocode ${GITHUB_REF_NAME#v}"
+          docker run --rm -v "$PWD/smoke:/work:ro" alpine:latest sh -ec \
+            'apk add --no-cache libstdc++ libgcc >/dev/null; /work/neocode --version' \
+            | grep "neocode ${GITHUB_REF_NAME#v}"
 
   publish:
     needs: [build, smoke, smoke-musl]

@@ -18,6 +18,12 @@ brew install Hardik180704/tap/neocode
 curl -fsSL https://raw.githubusercontent.com/Hardik180704/NeoCode/main/install.sh | sh
 ```
 
+Alpine Linux users must install the C++ runtime libraries first:
+
+```sh
+apk add --no-cache libstdc++ libgcc
+```
+
 ### Windows PowerShell
 
 ```powershell
