@@ -9,6 +9,12 @@ export {
 } from "./models";
 
 export {
+  Mode,
+  modeSchema,
+  toolInputSchemas,
+  getToolContracts,
+  type ToolContracts,
+  type ModeType,
   toolCallArgsSchema,
   messagePartSchema,
   messagePartsSchema,

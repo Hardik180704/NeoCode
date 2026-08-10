@@ -8,6 +8,7 @@ import chat from "./routes/chat";
 import mcp from "./routes/mcp";
 import auth from "./routes/auth";
 import neolens from "./routes/neolens";
+import billing from "./routes/billing";
 
 const app = new Hono();
 
@@ -55,13 +56,16 @@ app.use("/sessions/*", requireAuth);
 app.use("/chat/*", requireAuth);
 app.use("/mcp/*", requireAuth);
 app.use("/neolens/*", requireAuth);
+app.use("/billing/checkout", requireAuth);
+app.use("/billing/portal", requireAuth);
 
 const routes = app
   .route("/auth", auth)
   .route("/sessions", sessions)
   .route("/chat", chat)
   .route("/mcp", mcp)
-  .route("/neolens", neolens);
+  .route("/neolens", neolens)
+  .route("/billing", billing);
 
 export type AppType = typeof routes;
 

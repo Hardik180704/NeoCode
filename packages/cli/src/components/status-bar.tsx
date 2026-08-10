@@ -1,7 +1,7 @@
 import { TextAttributes } from "@opentui/core";
 import { useTheme } from "../providers/theme";
 import { usePromptConfig } from "../providers/prompt-config";
-import { mode as Mode } from "@neocode/database/enums";
+import { Mode } from "@neocode/shared";
 
 export function StatusBar() {
   const { mode, model } = usePromptConfig();

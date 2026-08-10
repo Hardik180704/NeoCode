@@ -1,7 +1,6 @@
 import { Hono } from "hono";
 import { db } from "@neocode/database/client";
 import {
-  messagePartsSchema,
   type NeoLensActivityEvent,
   type NeoLensFileStatus,
 } from "@neocode/shared";
@@ -20,10 +19,7 @@ const app = new Hono<AuthenticatedEnv>().get("/:sessionId", async (c) => {
     where: { id: sessionId, userId },
     select: {
       cwd: true,
-      messages: {
-        orderBy: { createdAt: "asc" },
-        select: { parts: true },
-      },
+      messages: true,
     },
   });
 
@@ -34,7 +30,9 @@ const app = new Hono<AuthenticatedEnv>().get("/:sessionId", async (c) => {
     buildTypeScriptDependencyGraph(session.cwd),
     inspectMcpServers(session.cwd).catch(() => null),
   ]);
-  const timeline = collectPersistedActivity(session.messages.map((message) => message.parts));
+  const timeline = collectPersistedActivity(
+    Array.isArray(session.messages) ? session.messages : [],
+  );
   const externalNodes: NeoLensExternalNode[] = (mcpInspection?.servers ?? []).map((server) => ({
     id: `mcp:${sanitizeMcpName(server.name)}`,
     kind: "mcp",
@@ -68,48 +66,54 @@ export function collectPersistedActivity(values: unknown[]): NeoLensActivityEven
   let fallbackOffset = 0;
 
   for (const value of values) {
-    const parsed = messagePartsSchema.safeParse(value);
-    if (!parsed.success) continue;
+    if (!value || typeof value !== "object") continue;
+    const parts = (value as { parts?: unknown }).parts;
+    if (!Array.isArray(parts)) continue;
 
-    for (const part of parsed.data) {
-      if (part.type !== "tool-call") continue;
-      if (part.activity) {
-        events.push(part.activity.started);
-        if (part.activity.completed) events.push(part.activity.completed);
-        continue;
-      }
-
-      const filePaths = extractLegacyPaths(part.args);
-      const startedStatus = classifyLegacyStatus(part.name);
+    for (const partValue of parts) {
+      if (!partValue || typeof partValue !== "object") continue;
+      const part = partValue as Record<string, unknown>;
+      if (typeof part.type !== "string" || !part.type.startsWith("tool-")) continue;
+      const name = part.type.slice("tool-".length);
+      const id = typeof part.toolCallId === "string" ? part.toolCallId : `${name}:${fallbackOffset}`;
+      const args = part.input && typeof part.input === "object"
+        ? part.input as Record<string, unknown>
+        : {};
+      const filePaths = extractLegacyPaths(args);
+      const startedStatus = classifyLegacyStatus(name);
       events.push({
-        id: `${part.id}:started`,
-        toolCallId: part.id,
-        toolName: part.name,
+        id: `${id}:started`,
+        toolCallId: id,
+        toolName: name,
         phase: "started",
         status: startedStatus,
         filePaths,
-        ...(getMcpServer(part.name) ? { mcpServer: getMcpServer(part.name) } : {}),
+        ...(getMcpServer(name) ? { mcpServer: getMcpServer(name) } : {}),
         timestampMs: fallbackOffset,
         offsetMs: fallbackOffset,
-        summary: `${capitalize(startedStatus)} ${filePaths[0] ?? part.name}`,
+        summary: `${capitalize(startedStatus)} ${filePaths[0] ?? name}`,
       });
       fallbackOffset += 250;
 
-      if (part.result !== undefined) {
-        const status: NeoLensFileStatus = isLegacyFailure(part.result)
+      const result = part.output ?? part.errorText;
+      if (result !== undefined) {
+        const serializedResult = typeof result === "string"
+          ? result
+          : JSON.stringify(result) ?? String(result);
+        const status: NeoLensFileStatus = part.state === "output-error" || isLegacyFailure(serializedResult)
           ? "failed"
           : startedStatus;
         events.push({
-          id: `${part.id}:completed`,
-          toolCallId: part.id,
-          toolName: part.name,
+          id: `${id}:completed`,
+          toolCallId: id,
+          toolName: name,
           phase: "completed",
           status,
           filePaths,
-          ...(getMcpServer(part.name) ? { mcpServer: getMcpServer(part.name) } : {}),
+          ...(getMcpServer(name) ? { mcpServer: getMcpServer(name) } : {}),
           timestampMs: fallbackOffset,
           offsetMs: fallbackOffset,
-          summary: `${capitalize(status)} ${filePaths[0] ?? part.name}`,
+          summary: `${capitalize(status)} ${filePaths[0] ?? name}`,
         });
         fallbackOffset += 250;
       }

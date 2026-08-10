@@ -1,10 +1,10 @@
 import { useTheme } from "../../providers/theme";
 import { EmptyBorder } from "../border";
-import type { mode as Mode } from "@neocode/database/enums";
+import { Mode, type ModeType } from "@neocode/shared";
 
 type Props = {
   message: string;
-  mode: Mode;
+  mode: ModeType;
 };
 
 export function UserMessage({ message, mode }: Props) {
