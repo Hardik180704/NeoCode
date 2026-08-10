@@ -18,6 +18,8 @@ import type { Message } from "../hooks/use-chat";
 import { useToast } from "../providers/toast";
 import { getErrorMessage } from "../lib/http-errors";
 import { useKeyboardLayer } from "../providers/keyboard-layer";
+import { useDialog } from "../providers/dialog";
+import { NeoLensDialogContent } from "../components/dialogs/neolens-dialog";
 
 type SessionData = InferResponseType<(typeof apiClient.sessions)[":id"]["$get"], 200>;
 
@@ -69,6 +71,7 @@ function SessionChat({
   const [initialMessages] = useState(() => session.messages as unknown as Message[]);
   const { model, mode } = usePromptConfig();
   const { isTopLayer } = useKeyboardLayer();
+  const dialog = useDialog();
   const { messages, status, submit, abort, interrupt, error } = useChat(session.id, initialMessages);
   const hasSubmittedInitialPromptRef = useRef(false);
 
@@ -79,6 +82,15 @@ function SessionChat({
 
   // Let the user cancel a reply even before the first streamed chunk arrives.
   useKeyboard((key) => {
+    if (key.name === "l" && key.ctrl && isTopLayer("base")) {
+      key.preventDefault();
+      dialog.open({
+        title: "NeoLens",
+        size: "fullscreen",
+        children: <NeoLensDialogContent sessionId={session.id} />,
+      });
+      return;
+    }
     if (key.name === "escape" && isTopLayer("base") && status === "streaming") {
       key.preventDefault();
       interrupt();

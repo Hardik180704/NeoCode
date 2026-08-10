@@ -2,7 +2,7 @@ import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { mode as Mode } from "@neocode/database/enums";
+import { Mode } from "@neocode/shared";
 import { loadMcpConfig, McpConfigError, resolveConfigValue } from "../src/mcp/config";
 import { createMcpRuntime, inspectMcpServers } from "../src/mcp/runtime";
 

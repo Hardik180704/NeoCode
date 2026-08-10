@@ -80,7 +80,8 @@ function Dialog({ currentDialog, close }: DialogProps) {
     return null;
   }
 
-  const { title, children } = currentDialog;
+  const { title, children, size = "default" } = currentDialog;
+  const fullscreen = size === "fullscreen";
 
   return (
     <box
@@ -96,10 +97,10 @@ function Dialog({ currentDialog, close }: DialogProps) {
       onMouseDown={() => close()}
     >
       <box
-        width={Math.min(60, dimensions.width - 4)}
-        height="auto"
+        width={fullscreen ? Math.max(20, dimensions.width - 2) : Math.min(60, dimensions.width - 4)}
+        height={fullscreen ? Math.max(10, dimensions.height - 2) : "auto"}
         backgroundColor={colors.dialogSurface}
-        paddingX={4}
+        paddingX={fullscreen ? 2 : 4}
         paddingY={1}
         flexDirection="column"
         gap={1}
@@ -116,7 +117,7 @@ function Dialog({ currentDialog, close }: DialogProps) {
             esc
           </text>
         </box>
-        <box flexGrow={1}>{children}</box>
+        <box flexGrow={1} minHeight={0}>{children}</box>
       </box>
     </box>
   );

@@ -44,6 +44,7 @@ export function NewSession() {
         const res = await apiClient.sessions.$post({
           json: {
             title: state.message.slice(0, 100),
+            cwd: process.cwd(),
           },
         });
 

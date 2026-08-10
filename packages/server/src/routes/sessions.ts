@@ -9,6 +9,7 @@ import { requireCreditsBalance } from "../middleware/require-credits-balance";
 
 const createSessionSchema = z.object({
   title: z.string(),
+  cwd: z.string().min(1),
 });
 
 const createSessionValidator = zValidator(

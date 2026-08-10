@@ -8,6 +8,8 @@ import {
     type UIMessage,
 } from "ai";
 import {
+    type NeoLensActivityEvent,
+    type NeoLensFileStatus,
     type ModeType,
     type SupportedChatModelId,
     type ToolContracts,
@@ -15,6 +17,36 @@ import {
 import { apiClient } from "../lib/api-client";
 import { getAuth } from "../lib/auth";
 import { executeLocalTool } from "../lib/local-tools";
+import { useNeoLens } from "../providers/neolens";
+
+function activityEvent(
+    toolCallId: string,
+    toolName: string,
+    input: unknown,
+    phase: "started" | "completed",
+    failed = false,
+): NeoLensActivityEvent {
+    const args = input && typeof input === "object" ? input as Record<string, unknown> : {};
+    const filePaths = Object.entries(args)
+        .filter(([key, value]) => /^(?:path|file|filePath)$/i.test(key) && typeof value === "string")
+        .map(([, value]) => value as string);
+    const status: NeoLensFileStatus = failed
+        ? "failed"
+        : /(?:write|edit|create|delete|remove|update)/i.test(toolName)
+          ? "modified"
+          : "inspected";
+    return {
+        id: `${toolCallId}:${phase}`,
+        toolCallId,
+        toolName,
+        phase,
+        status,
+        filePaths,
+        timestampMs: Date.now(),
+        offsetMs: 0,
+        summary: `${status[0]!.toUpperCase()}${status.slice(1)} ${filePaths[0] ?? toolName}`,
+    };
+}
 
 export type ChatMessageMetadata = {
     mode?: ModeType;
@@ -33,6 +65,7 @@ type ChatTools = {
 export type Message = UIMessage<ChatMessageMetadata, never, ChatTools>;
 
 export function useChat(sessionId: string, initialMessages: Message[]) {
+    const { recordActivity } = useNeoLens();
     const transport = useMemo(() => {
         return new DefaultChatTransport<Message>({
             api: apiClient.chat.$url().toString(),
@@ -71,23 +104,42 @@ export function useChat(sessionId: string, initialMessages: Message[]) {
         transport,
         onToolCall({ toolCall }) {
             const mode = chat.messages.at(-1)?.metadata?.mode ?? "BUILD";
+            recordActivity(sessionId, activityEvent(
+                toolCall.toolCallId,
+                toolCall.toolName,
+                toolCall.input,
+                "started",
+            ));
 
             void executeLocalTool(toolCall.toolName, toolCall.input, mode)
-                .then((output) =>
-                    chat.addToolOutput({
+                .then((output) => {
+                    recordActivity(sessionId, activityEvent(
+                        toolCall.toolCallId,
+                        toolCall.toolName,
+                        toolCall.input,
+                        "completed",
+                    ));
+                    return chat.addToolOutput({
                         tool: toolCall.toolName as keyof ChatTools,
                         toolCallId: toolCall.toolCallId,
                         output,
-                    }),
-                )
-                .catch((error) => 
-                chat.addToolOutput({
+                    });
+                })
+                .catch((error) => {
+                recordActivity(sessionId, activityEvent(
+                    toolCall.toolCallId,
+                    toolCall.toolName,
+                    toolCall.input,
+                    "completed",
+                    true,
+                ));
+                return chat.addToolOutput({
                     tool: toolCall.toolName as keyof ChatTools,
                     toolCallId: toolCall.toolCallId,
                     state: "output-error",
                     errorText: error instanceof Error ? error.message : String(error),
-                })
-            );
+                });
+            });
         },
         sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls
     });

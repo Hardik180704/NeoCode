@@ -74,14 +74,14 @@ const app = new Hono<AuthenticatedEnv>()
       const session = await db.session.findUnique({
         where: {
           id,
-          userId 
+          userId
         }
       })
-      
+
       if (!session) {
         return c.json({ error: "Session not found" }, 404);
       }
-      
+
       const startTime = Date.now();
       const tools = getToolContracts(mode);
       const resolvedModel = resolveChatModel(model);
@@ -110,7 +110,7 @@ const app = new Hono<AuthenticatedEnv>()
         messages: mergedMessages,
         tools,
       });
-      
+
       const modelMessages = await convertToModelMessages(nextMessages, { tools });
       let completedUsage: LanguageModelUsage | null = null;
 
@@ -183,4 +183,3 @@ const app = new Hono<AuthenticatedEnv>()
   )
 
 export default app;
-

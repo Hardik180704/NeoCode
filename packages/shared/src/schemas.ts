@@ -87,6 +87,29 @@ export function getToolContracts(mode: ModeType) {
 // form does not type-check cleanly with the Zod typings used in this workspace.
 export const toolCallArgsSchema = z.record(z.string(), z.json());
 
+export const neoLensFileStatusSchema = z.enum([
+  "inspected",
+  "modified",
+  "failed",
+  "verified",
+]);
+
+export const neoLensActivityEventSchema = z.object({
+  id: z.string(),
+  toolCallId: z.string(),
+  toolName: z.string(),
+  phase: z.enum(["started", "completed"]),
+  status: neoLensFileStatusSchema,
+  filePaths: z.array(z.string()),
+  mcpServer: z.string().optional(),
+  timestampMs: z.number().nonnegative(),
+  offsetMs: z.number().nonnegative(),
+  summary: z.string(),
+});
+
+export type NeoLensFileStatus = z.infer<typeof neoLensFileStatusSchema>;
+export type NeoLensActivityEvent = z.infer<typeof neoLensActivityEventSchema>;
+
 export const messagePartSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("reasoning"),
@@ -98,6 +121,12 @@ export const messagePartSchema = z.discriminatedUnion("type", [
     name: z.string(),
     args: toolCallArgsSchema,
     result: z.string().optional(),
+    activity: z
+      .object({
+        started: neoLensActivityEventSchema,
+        completed: neoLensActivityEventSchema.optional(),
+      })
+      .optional(),
   }),
   z.object({
     type: z.literal("text"),
@@ -130,6 +159,10 @@ export const chatStreamEventSchema = z.discriminatedUnion("type", [
     type: z.literal("tool-result"),
     toolCallId: z.string(),
     result: z.string(),
+  }),
+  z.object({
+    type: z.literal("neolens-activity"),
+    event: neoLensActivityEventSchema,
   }),
   z.object({
     type: z.literal("done"),
