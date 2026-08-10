@@ -33,6 +33,21 @@ if [ "$os" = "linux" ] && ldd --version 2>&1 | grep -qi musl; then
   suffix="${suffix}-musl"
 fi
 
+if [ "$suffix" = "linux-${architecture}-musl" ] && command -v apk >/dev/null 2>&1; then
+  missing_packages=""
+  for package in libstdc++ libgcc; do
+    if ! apk info -e "$package" >/dev/null 2>&1; then
+      missing_packages="${missing_packages} ${package}"
+    fi
+  done
+  if [ -n "$missing_packages" ]; then
+    echo "NeoCode on Alpine Linux requires:${missing_packages}" >&2
+    echo "Install them as root, then rerun this installer:" >&2
+    echo "  apk add --no-cache libstdc++ libgcc" >&2
+    exit 1
+  fi
+fi
+
 if [ "$requested_version" = "latest" ]; then
   release_url="$(curl -fsSLI -o /dev/null -w '%{url_effective}' "https://github.com/${repository}/releases/latest")"
   tag="${release_url##*/}"
@@ -89,4 +104,11 @@ case ":${PATH}:" in
     echo "  export PATH=\"${install_dir}:\$PATH\""
     ;;
 esac
-"${install_dir}/neocode" --version
+if ! installed_version="$("${install_dir}/neocode" --version 2>&1)"; then
+  echo "$installed_version" >&2
+  if [ "$suffix" = "linux-${architecture}-musl" ]; then
+    echo "The musl build requires the system libstdc++ and libgcc runtime libraries." >&2
+  fi
+  exit 1
+fi
+echo "$installed_version"
