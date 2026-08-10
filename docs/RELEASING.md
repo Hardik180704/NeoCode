@@ -30,8 +30,8 @@ or other credentials in GitHub variables used by the binary build.
 5. Create and push a matching tag:
 
    ```sh
-   git tag -s v0.1.0 -m "NeoCode v0.1.0"
-   git push origin v0.1.0
+   git tag -a v0.1.0-beta.1 -m "NeoCode v0.1.0-beta.1"
+   git push origin v0.1.0-beta.1
    ```
 
 The tag must match the CLI version. Tags with a prerelease suffix, such as
@@ -69,5 +69,8 @@ After the automated formula PR is reviewed and merged, `brew update` and
 
 GitHub checksums and attestations are enabled by default. Apple Developer ID
 signing/notarization and Windows Authenticode signing require organization-owned
-certificates and must be added before removing prerelease status from public
-downloads.
+certificates and may be added later without changing the release format. Until
+then, document that macOS may require approval in Privacy & Security and Windows
+may display a Microsoft Defender SmartScreen warning. Verify downloads against
+`SHA256SUMS` or their GitHub attestations before overriding an operating-system
+warning.

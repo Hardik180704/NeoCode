@@ -34,6 +34,10 @@ neocode
 Standalone binaries are also available from the repository's GitHub Releases.
 They include the Bun runtime; users do not need to install Bun or Node.js.
 
+Current binaries are unsigned. macOS may require approval in Privacy & Security,
+and Windows may display a Microsoft Defender SmartScreen warning. Published
+SHA-256 checksums and GitHub attestations can be used to verify each download.
+
 Use `API_URL` to override the production API endpoint for development.
 
 ## Development
