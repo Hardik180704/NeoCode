@@ -16,14 +16,19 @@ try {
   # PowerShell Core manages TLS automatically.
 }
 
-$Architecture = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
-switch ($Architecture) {
-  "x64" { $Target = "windows-x64" }
-  "arm64" { $Target = "windows-arm64" }
-  default { throw "Unsupported CPU architecture: $Architecture" }
+$Architecture = $env:PROCESSOR_ARCHITEW6432
+if ([string]::IsNullOrWhiteSpace($Architecture)) {
+  $Architecture = $env:PROCESSOR_ARCHITECTURE
 }
 
-if ($Version -eq "latest") {
+switch -Regex ($Architecture) {
+  "^(AMD64|x86_64)$" { $Target = "windows-x64"; break }
+  "^(ARM64|AARCH64)$" { $Target = "windows-arm64"; break }
+  default { throw "Unsupported CPU architecture: '$Architecture'" }
+}
+
+$VersionValue = [string]$Version
+if ([string]::IsNullOrWhiteSpace($VersionValue) -or $VersionValue -eq "latest") {
   try {
     $Release = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repository/releases/latest" -Headers $Headers
   } catch {
@@ -31,13 +36,13 @@ if ($Version -eq "latest") {
   }
   $Tag = $Release.tag_name
 } else {
-  $Tag = if ($Version.StartsWith("v")) { $Version } else { "v$Version" }
+  $Tag = if ($VersionValue -like "v*") { $VersionValue } else { "v$VersionValue" }
 }
 
-if ([string]::IsNullOrWhiteSpace($Tag) -or -not $Tag.StartsWith("v")) {
+if ([string]::IsNullOrWhiteSpace($Tag) -or $Tag -notlike "v*") {
   throw "Invalid NeoCode release tag received from GitHub: '$Tag'"
 }
-$ResolvedVersion = $Tag.Substring(1)
+$ResolvedVersion = $Tag -replace "^v", ""
 $Asset = "neocode-v$ResolvedVersion-$Target.zip"
 $BaseUrl = "https://github.com/$Repository/releases/download/$Tag"
 $AssetUrl = "$BaseUrl/$Asset"
@@ -63,7 +68,7 @@ try {
   Invoke-WebRequest -Uri $AssetUrl -Headers $Headers -OutFile $ArchivePath
   Invoke-WebRequest -Uri $ChecksumsUrl -Headers $Headers -OutFile $ChecksumsPath
 
-  $ChecksumLine = Get-Content $ChecksumsPath | Where-Object { $_ -match "\s$([regex]::Escape($Asset))$" } | Select-Object -First 1
+  $ChecksumLine = Get-Content $ChecksumsPath | Where-Object { $_ -match "(^|\s)\*{0,1}$([regex]::Escape($Asset))$" } | Select-Object -First 1
   if (-not $ChecksumLine) { throw "No checksum was published for $Asset" }
   $ExpectedChecksum = ($ChecksumLine -split "\s+")[0].ToLowerInvariant()
   $ActualChecksum = (Get-FileHash -Algorithm SHA256 $ArchivePath).Hash.ToLowerInvariant()
