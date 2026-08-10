@@ -1,6 +1,7 @@
 {
   "name": "neocode",
   "version": "1.0.0",
+  "license": "MIT",
   "workspaces": [
     "packages/*"
   ],
@@ -8,7 +9,9 @@
     "dev:server": "bun run --hot  packages/server/src/index.ts",
     "dev:cli": "bun run --watch packages/cli/src/index.tsx",
     "build:cli": "bun run --filter @neocode/cli build",
-    "link:cli": "bun run build:cli && cd packages/cli && bun link"
+    "link:cli": "bun run build:cli && cd packages/cli && bun link",
+    "release:build": "bun scripts/build-release.ts",
+    "release:smoke": "bun scripts/smoke-release.ts"
   },
   "dependencies": {
     "dotenv": "^17.4.2"

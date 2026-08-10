@@ -1,31 +1,29 @@
-import { createCliRenderer } from "@opentui/core";
-import { createRoot } from "@opentui/react";
-import { createMemoryRouter, RouterProvider } from "react-router";
-import { RootLayout } from "./layouts/root-layout";
-import { Home } from "./screens/home";
-import { NewSession } from "./screens/new-session";
-import { Session } from "./screens/session";
+declare const NEOCODE_VERSION: string | undefined;
+declare const NEOCODE_OPENTUI_LIBC: string | undefined;
 
-const router = createMemoryRouter([
-  {
-    path: "/",
-    element: <RootLayout />,
-    children: [
-      { index: true, element: <Home /> },
-      { path: "sessions/new", element: <NewSession /> },
-      { path: "sessions/:id", element: <Session /> },
-    ]
+const version = typeof NEOCODE_VERSION === "string" ? NEOCODE_VERSION : "dev";
+const args = process.argv.slice(2);
+
+if (args.includes("--version") || args.includes("-v")) {
+  console.log(`neocode ${version}`);
+} else if (args.includes("--help") || args.includes("-h")) {
+  console.log(`NeoCode ${version}
+
+Usage:
+  neocode [options]
+
+Options:
+  -h, --help       Show this help message
+  -v, --version    Show the installed NeoCode version
+
+Environment:
+  API_URL          Override the NeoCode API endpoint`);
+} else if (args.length > 0) {
+  console.error(`Unknown option: ${args[0]}\nRun 'neocode --help' for usage.`);
+  process.exitCode = 1;
+} else {
+  if (typeof NEOCODE_OPENTUI_LIBC === "string" && NEOCODE_OPENTUI_LIBC) {
+    process.env.OPENTUI_LIBC = NEOCODE_OPENTUI_LIBC;
   }
-]);
-
-function App() {
-  return (
-    <RouterProvider router={router} />
-  );
+  await import("./app");
 }
-
-const renderer = await createCliRenderer({
-  targetFps: 60,
-  exitOnCtrlC: false,
-});
-createRoot(renderer).render(<App />);

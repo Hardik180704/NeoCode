@@ -1,5 +1,6 @@
-import { readFile } from "node:fs/promises";
-import { dirname, extname, posix, resolve } from "node:path";
+import { readFile, readdir } from "node:fs/promises";
+import { homedir } from "node:os";
+import { dirname, extname, parse, posix, resolve } from "node:path";
 
 const MAX_GRAPH_FILES = 500;
 const MAX_SOURCE_BYTES = 1_000_000;
@@ -41,18 +42,8 @@ export type NeoLensGraph = {
 };
 
 export async function buildTypeScriptDependencyGraph(cwd: string): Promise<NeoLensGraph> {
-  const paths: string[] = [];
-
-  for (const pattern of ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"]) {
-    const glob = new Bun.Glob(pattern);
-    for await (const match of glob.scan({ cwd, dot: false, onlyFiles: true })) {
-      const projectPath = normalizeProjectPath(match);
-      if (isIgnored(projectPath) || paths.includes(projectPath)) continue;
-      paths.push(projectPath);
-      if (paths.length > MAX_GRAPH_FILES) break;
-    }
-    if (paths.length > MAX_GRAPH_FILES) break;
-  }
+  assertSafeGraphRoot(cwd);
+  const paths = await collectTypeScriptPaths(cwd);
 
   paths.sort();
   const truncated = paths.length > MAX_GRAPH_FILES;
@@ -91,6 +82,42 @@ export async function buildTypeScriptDependencyGraph(cwd: string): Promise<NeoLe
     edges: dedupeEdges(edges),
     truncated,
   };
+}
+
+export function assertSafeGraphRoot(cwd: string) {
+  const resolved = resolve(cwd);
+  if (resolved === resolve(homedir()) || resolved === parse(resolved).root) {
+    throw new Error("NeoLens requires a project directory. Start NeoCode inside your repository.");
+  }
+}
+
+async function collectTypeScriptPaths(cwd: string) {
+  const paths: string[] = [];
+
+  async function visit(projectDirectory: string): Promise<void> {
+    let entries;
+    try {
+      entries = await readdir(resolve(cwd, projectDirectory), { withFileTypes: true });
+    } catch {
+      return;
+    }
+
+    entries.sort((left, right) => left.name.localeCompare(right.name));
+    for (const entry of entries) {
+      const projectPath = normalizeProjectPath(posix.join(projectDirectory, entry.name));
+      if (isIgnored(projectPath) || entry.isSymbolicLink()) continue;
+      if (entry.isDirectory()) {
+        await visit(projectPath);
+      } else if (entry.isFile() && TYPESCRIPT_EXTENSIONS.includes(extname(entry.name))) {
+        paths.push(projectPath);
+        if (paths.length > MAX_GRAPH_FILES) return;
+      }
+      if (paths.length > MAX_GRAPH_FILES) return;
+    }
+  }
+
+  await visit("");
+  return paths;
 }
 
 export function extractTypeScriptImports(source: string): string[] {

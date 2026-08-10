@@ -10,6 +10,7 @@
     "db:generate": "bunx prisma generate"
   },
   "devDependencies": {
+    "@types/bun": "latest",
     "@types/node": "^26.1.1",
     "prisma": "^7.8.0"
   },
