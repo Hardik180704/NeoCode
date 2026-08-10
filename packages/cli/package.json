@@ -3,8 +3,12 @@
   "module": "src/index.tsx",
   "type": "module",
   "private": true,
+  "bin": {
+    "neocode": "./bin/neocode"
+  },
   "scripts": {
-    "dev": "bun run --watch src/index.tsx"
+    "dev": "bun run --watch src/index.tsx",
+    "build": "bun build src/index.tsx --outdir dist --target bun --packages external"
   },
   "devDependencies": {
     "@neocode/server": "workspace:*",
