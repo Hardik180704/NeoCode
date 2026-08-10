@@ -4,6 +4,9 @@
   "workspaces": {
     "": {
       "name": "neocode",
+      "dependencies": {
+        "dotenv": "^17.4.2",
+      },
     },
     "packages/cli": {
       "name": "@neocode/cli",
