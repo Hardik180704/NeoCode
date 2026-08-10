@@ -30,8 +30,8 @@ or other credentials in GitHub variables used by the binary build.
 5. Create and push a matching tag:
 
    ```sh
-   git tag -a v0.1.0-beta.2 -m "NeoCode v0.1.0-beta.2"
-   git push origin v0.1.0-beta.2
+   git tag -a v0.1.0 -m "NeoCode v0.1.0"
+   git push origin v0.1.0
    ```
 
 The tag must match the CLI version. Tags with a prerelease suffix, such as
