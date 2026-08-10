@@ -201,6 +201,15 @@ jobs:
           path: homebrew-tap
       - name: Generate formula
         run: bun scripts/generate-homebrew-formula.ts "${GITHUB_REF_NAME#v}" release/SHA256SUMS homebrew-tap/Formula/neocode.rb
+      - name: Prepare formula update
+        working-directory: homebrew-tap
+        run: |
+          branch="release/${GITHUB_REF_NAME}"
+          git switch -c "$branch"
+          git config user.name "neocode-release-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add Formula/neocode.rb
+          git commit -m "chore: update neocode to ${GITHUB_REF_NAME}"
       - name: Test formula
         run: |
           brew tap neocode/release "$PWD/homebrew-tap"
@@ -215,11 +224,6 @@ jobs:
           TAP_REPOSITORY: ${{ vars.HOMEBREW_TAP_REPOSITORY }}
         run: |
           branch="release/${GITHUB_REF_NAME}"
-          git switch -c "$branch"
-          git config user.name "neocode-release-bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add Formula/neocode.rb
-          git commit -m "chore: update neocode to ${GITHUB_REF_NAME}"
           git push --set-upstream origin "$branch"
           gh pr create --repo "$TAP_REPOSITORY" --base main --head "$branch" \
             --title "chore: update neocode to ${GITHUB_REF_NAME}" \
