@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <style>
+      @font-face {
+        font-family: "Sixtyfour OG";
+        src: url("data:font/woff2;base64,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");
+      }
+      .ascii { font-family: "Sixtyfour OG", monospace; font-variation-settings: "BLED" 2, "SCAN" -12; }
+      .mono { font-family: "Courier New", monospace; }
+      .sans { font-family: Arial, Helvetica, sans-serif; }
+    </style>
+    <linearGradient id="beam-a" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#56d6c2" stop-opacity="0"/>
+      <stop offset=".5" stop-color="#56d6c2" stop-opacity=".09"/>
+      <stop offset="1" stop-color="#56d6c2" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="beam-b" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#89b4fa" stop-opacity="0"/>
+      <stop offset=".5" stop-color="#89b4fa" stop-opacity=".075"/>
+      <stop offset="1" stop-color="#89b4fa" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="scene-shade" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#071327" stop-opacity=".2"/>
+      <stop offset="1" stop-color="#040b1b" stop-opacity=".72"/>
+    </linearGradient>
+    <pattern id="grid" width="64" height="64" patternUnits="userSpaceOnUse">
+      <path d="M64 0H0V64" fill="none" stroke="#89b4fa" stroke-opacity=".045"/>
+    </pattern>
+    <clipPath id="scene-clip"><path d="M724 146h476v397H724a30 30 0 0 1-30-30V176a30 30 0 0 1 30-30Z"/></clipPath>
+  </defs>
+
+  <rect width="1200" height="630" fill="#040b1b"/>
+  <rect width="720" height="630" fill="url(#grid)"/>
+  <path d="m95-160 150-15 76 775-150 15Z" fill="url(#beam-a)"/>
+  <path d="m485-170 145 26-136 766-145-26Z" fill="url(#beam-b)"/>
+
+  <image href="favicon.svg" x="58" y="46" width="50" height="50"/>
+  <text x="127" y="81" class="ascii" fill="#8290aa" font-size="25">NEO</text>
+  <text x="184" y="81" class="ascii" fill="#f3f7ff" font-size="25">CODE</text>
+  <text x="1142" y="76" class="mono" fill="#7f91ad" font-size="9" letter-spacing="1.3" text-anchor="end">OPEN-SOURCE TERMINAL CODING AGENT</text>
+
+  <text x="62" y="179" class="mono" fill="#56d6c2" font-size="10" font-weight="700" letter-spacing="1.4">OPEN-SOURCE TERMINAL CLIENT</text>
+  <text x="58" y="260" class="sans" fill="#f3f7ff" font-size="64" font-weight="500" letter-spacing="-4">Code with NeoCode.</text>
+  <text x="58" y="321" class="sans" fill="#b8c7dc" font-size="64" font-weight="500" letter-spacing="-4">Stay in your terminal.</text>
+  <text x="62" y="372" class="sans" fill="#9caac0" font-size="18">Ask questions, inspect files, plan changes, and build</text>
+  <text x="62" y="400" class="sans" fill="#9caac0" font-size="18">without leaving your terminal.</text>
+
+  <g class="mono" font-size="8" letter-spacing="1.1">
+    <rect x="62" y="438" width="57" height="28" rx="14" fill="#071327" stroke="#89b4fa" stroke-opacity=".28"/>
+    <text x="90.5" y="456" fill="#89b4fa" text-anchor="middle">PLAN</text>
+    <rect x="127" y="438" width="61" height="28" rx="14" fill="#071327" stroke="#89b4fa" stroke-opacity=".28"/>
+    <text x="157.5" y="456" fill="#89b4fa" text-anchor="middle">BUILD</text>
+    <rect x="196" y="438" width="77" height="28" rx="14" fill="#071327" stroke="#89b4fa" stroke-opacity=".28"/>
+    <text x="234.5" y="456" fill="#89b4fa" text-anchor="middle">NEOLENS</text>
+  </g>
+
+  <g clip-path="url(#scene-clip)">
+    <image href="backgrounds/neocode-alpine.webp" x="694" y="146" width="506" height="397" preserveAspectRatio="xMidYMid slice"/>
+    <rect x="694" y="146" width="506" height="397" fill="url(#scene-shade)"/>
+  </g>
+  <path d="M724 146h476v397H724a30 30 0 0 1-30-30V176a30 30 0 0 1 30-30Z" fill="none" stroke="#89b4fa" stroke-opacity=".27"/>
+
+  <g transform="translate(731 181)">
+    <rect width="447" height="326" rx="18" fill="#050607" stroke="#f3f7ff" stroke-opacity=".25"/>
+    <path d="M18 0h411a18 18 0 0 1 18 18v22H0V18A18 18 0 0 1 18 0Z" fill="#14171c"/>
+    <path d="M0 40h447" stroke="#2a2e36"/>
+    <circle cx="17" cy="20" r="4.5" fill="#ff5f57"/><circle cx="30" cy="20" r="4.5" fill="#febc2e"/><circle cx="43" cy="20" r="4.5" fill="#28c840"/>
+    <text x="223.5" y="23" class="mono" fill="#777f8e" font-size="6" text-anchor="middle">neocode — project</text>
+    <circle cx="407" cy="20" r="2.5" fill="#56d6c2"/>
+    <text x="432" y="22" class="mono" fill="#777f8e" font-size="5" letter-spacing=".8" text-anchor="end">NEOCODE</text>
+    <text x="122" y="122" class="ascii" fill="#8290aa" font-size="23">NEO</text>
+    <text x="177" y="122" class="ascii" fill="#f3f7ff" font-size="23">CODE</text>
+    <rect x="25" y="154" width="397" height="101" rx="11" fill="#111214"/>
+    <rect x="25" y="154" width="2" height="101" fill="#56d6c2"/>
+    <rect x="45" y="176" width="7" height="17" fill="#f8f8fa"/>
+    <text x="55" y="189" class="mono" fill="#74747b" font-size="10">Find where failed payments are retried</text>
+    <text x="45" y="222" class="mono" fill="#56d6c2" font-size="9">Build</text>
+    <text x="81" y="222" class="mono" fill="#34343a" font-size="9">›</text>
+    <text x="94" y="222" class="mono" fill="#e4e4e8" font-size="9">claude-opus-4-6</text>
+    <text x="420" y="280" class="mono" fill="#5e5e64" font-size="7" text-anchor="end"><tspan fill="#e8e8ec">tab</tspan> agents</text>
+  </g>
+
+  <path d="M62 565h1076" stroke="#89b4fa" stroke-opacity=".19"/>
+  <g class="mono" fill="#657794" font-size="7" letter-spacing="1">
+    <text x="62" y="598">MIT LICENSE</text>
+    <text x="600" y="598" text-anchor="middle">MACOS · LINUX · WINDOWS</text>
+    <text x="1138" y="598" text-anchor="end">GITHUB.COM/HARDIK180704/NEOCODE</text>
+  </g>
+</svg>

@@ -52,6 +52,7 @@ Use `API_URL` to override the production API endpoint for development.
 bun install
 bun run dev:server
 bun run dev:cli
+bun run dev:web
 ```
 
 See [docs/RELEASING.md](docs/RELEASING.md) for the release and Homebrew process.
