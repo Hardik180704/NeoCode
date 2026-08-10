@@ -2,15 +2,13 @@ import { Hono } from "hono";
 import { db } from "@neocode/database/client";
 import {
   type NeoLensActivityEvent,
+  type NeoLensExternalNode,
+  type NeoLensFileNode,
   type NeoLensFileStatus,
+  type NeoLensGraphEdge,
 } from "@neocode/shared";
 import type { AuthenticatedEnv } from "../middleware/require-auth";
 import { inspectMcpServers } from "../mcp/runtime";
-import {
-  buildTypeScriptDependencyGraph,
-  type NeoLensExternalNode,
-  type NeoLensGraphEdge,
-} from "../neolens/graph";
 
 const app = new Hono<AuthenticatedEnv>().get("/:sessionId", async (c) => {
   const sessionId = c.req.param("sessionId");
@@ -24,23 +22,23 @@ const app = new Hono<AuthenticatedEnv>().get("/:sessionId", async (c) => {
   });
 
   if (!session) return c.json({ error: "Session not found" }, 404);
-  if (!session.cwd) return c.json({ error: "Session has no project directory" }, 409);
-
-  const [graph, mcpInspection] = await Promise.all([
-    buildTypeScriptDependencyGraph(session.cwd),
-    inspectMcpServers(session.cwd).catch(() => null),
-  ]);
   const timeline = collectPersistedActivity(
     Array.isArray(session.messages) ? session.messages : [],
   );
-  const externalNodes: NeoLensExternalNode[] = (mcpInspection?.servers ?? []).map((server) => ({
+  const mcpInspection = session.cwd
+    ? await inspectMcpServers(session.cwd).catch(() => null)
+    : null;
+  // The API can run on Railway and cannot read the CLI user's filesystem.
+  // Keep locally available MCP metadata for compatibility, but let the CLI
+  // merge in the dependency graph from its own filesystem.
+  const nodes: Array<NeoLensFileNode | NeoLensExternalNode> = (mcpInspection?.servers ?? []).map((server) => ({
     id: `mcp:${sanitizeMcpName(server.name)}`,
     kind: "mcp",
     label: server.name,
     status: server.status,
     transport: server.transport,
   }));
-  const mcpEdges: NeoLensGraphEdge[] = timeline.flatMap((event) =>
+  const edges: NeoLensGraphEdge[] = dedupeEdges(timeline.flatMap((event) =>
     event.mcpServer
       ? event.filePaths.map((path) => ({
           source: path,
@@ -48,14 +46,15 @@ const app = new Hono<AuthenticatedEnv>().get("/:sessionId", async (c) => {
           kind: "mcp" as const,
         }))
       : [],
-  );
+  ));
+  const truncated: boolean = false;
 
   return c.json({
-    cwd: session.cwd,
+    cwd: session.cwd ?? "",
     graph: {
-      nodes: [...graph.nodes, ...externalNodes],
-      edges: dedupeEdges([...graph.edges, ...mcpEdges]),
-      truncated: graph.truncated,
+      nodes,
+      edges,
+      truncated,
     },
     timeline,
   });

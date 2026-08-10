@@ -3,19 +3,30 @@ import { TextAttributes, type ScrollBoxRenderable } from "@opentui/core";
 import { useKeyboard, useTerminalDimensions } from "@opentui/react";
 import { useParams } from "react-router";
 import type { InferResponseType } from "hono/client";
-import type { NeoLensActivityEvent, NeoLensFileStatus } from "@neocode/shared";
+import {
+  buildTypeScriptDependencyGraph,
+  type NeoLensActivityEvent,
+  type NeoLensFileStatus,
+} from "@neocode/shared";
 import { apiClient } from "../../lib/api-client";
 import { getErrorMessage } from "../../lib/http-errors";
 import { useKeyboardLayer } from "../../providers/keyboard-layer";
 import { useNeoLens } from "../../providers/neolens";
 import { useTheme } from "../../providers/theme";
 
-type NeoLensSnapshot = InferResponseType<
+type RemoteNeoLensSnapshot = InferResponseType<
   (typeof apiClient.neolens)[":sessionId"]["$get"],
   200
 >;
-type GraphNode = NeoLensSnapshot["graph"]["nodes"][number];
-type GraphEdge = NeoLensSnapshot["graph"]["edges"][number];
+type GraphNode = RemoteNeoLensSnapshot["graph"]["nodes"][number];
+type GraphEdge = RemoteNeoLensSnapshot["graph"]["edges"][number];
+type NeoLensSnapshot = Omit<RemoteNeoLensSnapshot, "graph"> & {
+  graph: {
+    nodes: GraphNode[];
+    edges: GraphEdge[];
+    truncated: boolean;
+  };
+};
 
 const STATUS_ICON: Record<NeoLensFileStatus, string> = {
   inspected: "◉",
@@ -45,6 +56,18 @@ function fileNode(path: string): GraphNode {
   };
 }
 
+function dedupeById<T extends { id: string }>(values: T[]): T[] {
+  return [...new Map(values.map((value) => [value.id, value])).values()];
+}
+
+function dedupeEdges(values: GraphEdge[]): GraphEdge[] {
+  const byKey = new Map<string, GraphEdge>();
+  for (const edge of values) {
+    byKey.set(`${edge.source}\0${edge.target}\0${edge.kind}`, edge);
+  }
+  return [...byKey.values()];
+}
+
 export function NeoLensDialogContent({ sessionId: explicitSessionId }: { sessionId?: string }) {
   const { id: routeSessionId } = useParams();
   const sessionId = explicitSessionId ?? routeSessionId;
@@ -64,13 +87,24 @@ export function NeoLensDialogContent({ sessionId: explicitSessionId }: { session
     if (!sessionId) return;
     setError(null);
     try {
-      const response = await apiClient.neolens[":sessionId"].$get({
-        param: { sessionId },
-      });
+      const cwd = process.cwd();
+      const [response, localGraph] = await Promise.all([
+        apiClient.neolens[":sessionId"].$get({ param: { sessionId } }),
+        buildTypeScriptDependencyGraph(cwd),
+      ]);
       if (!response.ok) throw new Error(await getErrorMessage(response));
       const data = await response.json();
-      setSnapshot(data);
-      setSelectedNodeId((current) => current ?? data.graph.nodes[0]?.id ?? null);
+      const merged = {
+        ...data,
+        cwd,
+        graph: {
+          nodes: dedupeById([...localGraph.nodes, ...data.graph.nodes]),
+          edges: dedupeEdges([...localGraph.edges, ...data.graph.edges]),
+          truncated: localGraph.truncated || data.graph.truncated,
+        },
+      } satisfies NeoLensSnapshot;
+      setSnapshot(merged);
+      setSelectedNodeId((current) => current ?? merged.graph.nodes[0]?.id ?? null);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Failed to load NeoLens");
     }

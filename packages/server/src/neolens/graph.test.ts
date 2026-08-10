@@ -1,5 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import { extractTypeScriptImports, resolveImportPath } from "./graph";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import {
+  buildTypeScriptDependencyGraph,
+  extractTypeScriptImports,
+  resolveImportPath,
+} from "./graph";
 
 describe("TypeScript dependency graph", () => {
   test("extracts static, dynamic, re-export, and CommonJS imports", () => {
@@ -29,5 +36,26 @@ describe("TypeScript dependency graph", () => {
     );
     expect(resolveImportPath("src/session.ts", "../outside", files)).toBeNull();
     expect(resolveImportPath("src/session.ts", "react", files)).toBeNull();
+  });
+
+  test("builds the dependency graph from the CLI-visible working directory", async () => {
+    const cwd = await mkdtemp(join(tmpdir(), "neolens-graph-"));
+    try {
+      await mkdir(join(cwd, "src"));
+      await mkdir(join(cwd, "node_modules", "ignored"), { recursive: true });
+      await writeFile(join(cwd, "src", "index.ts"), 'import { value } from "./value";');
+      await writeFile(join(cwd, "src", "value.ts"), "export const value = 1;");
+      await writeFile(join(cwd, "node_modules", "ignored", "index.ts"), "export {};");
+
+      const graph = await buildTypeScriptDependencyGraph(cwd);
+
+      expect(graph.nodes.map((node) => node.id)).toEqual(["src/index.ts", "src/value.ts"]);
+      expect(graph.edges).toEqual([
+        { source: "src/index.ts", target: "src/value.ts", kind: "import" },
+      ]);
+      expect(graph.truncated).toBeFalse();
+    } finally {
+      await rm(cwd, { recursive: true });
+    }
   });
 });
