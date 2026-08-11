@@ -252,8 +252,10 @@ function HeroDataParticles() {
     if (!ctx) return;
 
     let animationFrameId: number;
-    let width = (canvas.width = canvas.parentElement?.clientWidth || window.innerWidth);
-    let height = (canvas.height = canvas.parentElement?.clientHeight || 600);
+    canvas.width = canvas.parentElement?.clientWidth || window.innerWidth;
+    canvas.height = canvas.parentElement?.clientHeight || 600;
+    let width = canvas.width;
+    let height = canvas.height;
 
     const handleResize = () => {
       if (!canvas.parentElement) return;
@@ -316,7 +318,7 @@ function PromptMockup() {
 
   return (
     <MacFrame scene="alpine" title="neocode — project" variant="scene-prompt">
-      <div className="terminal-canvas prompt-mockup" aria-label="Animated NeoCode prompt interface">
+      <div className="terminal-canvas prompt-mockup" role="img" aria-label="Animated NeoCode prompt interface">
         <div className="prompt-brand"><BrandWordmark large /></div>
         <div className="prompt-input-wrap">
           <div className="terminal-input">
@@ -362,7 +364,7 @@ function CommandPaletteMockup() {
 
   return (
     <MacFrame scene="monolith" title="neocode — commands" variant="scene-commands">
-      <div className="terminal-canvas command-mockup" aria-label="Animated NeoCode slash-command menu">
+      <div className="terminal-canvas command-mockup" role="img" aria-label="Animated NeoCode slash-command menu">
         <div className="command-list">
           {commands.map(([command, description], index) => (
             <div className={index === activeCommand ? "command-row command-row-active" : "command-row"} key={command}>
@@ -391,7 +393,7 @@ const activityRows = [
 function ActivityMockup() {
   return (
     <MacFrame scene="alpine" title="neocode — session" variant="scene-activity">
-      <div className="terminal-canvas activity-mockup" aria-label="NeoCode tool activity interface">
+      <div className="terminal-canvas activity-mockup" role="img" aria-label="NeoCode tool activity interface">
         <div className="activity-stream">
           {activityRows.map(([action, target], index) => (
             <motion.div
@@ -431,7 +433,7 @@ const analysisLines = [
 function AnalysisMockup() {
   return (
     <MacFrame scene="monolith" title="neocode — analysis" variant="scene-analysis">
-      <div className="terminal-canvas analysis-mockup" aria-label="NeoCode repository analysis response">
+      <div className="terminal-canvas analysis-mockup" role="img" aria-label="NeoCode repository analysis response">
         <div className="analysis-content">
           <p>I now have a comprehensive understanding of this project. Here&apos;s my analysis:</p>
           {analysisLines.map((line, index) => (
@@ -474,7 +476,7 @@ function ThemeMockup() {
 
   return (
     <MacFrame scene="alpine" title="neocode — theme" variant="scene-theme">
-      <div className="terminal-canvas theme-mockup" style={style} aria-label="Animated NeoCode theme selector">
+      <div className="terminal-canvas theme-mockup" style={style} role="img" aria-label="Animated NeoCode theme selector">
         <div className="theme-background-copy" aria-hidden="true">
           <span>## Project Overview</span>
           <span>This repository contains an MCP learning project.</span>
@@ -700,7 +702,7 @@ function Hero() {
             <span>VIEW ON GITHUB</span>
           </a>
         </div>
-        <div className="hero-facts" aria-label="NeoCode availability">
+        <div className="hero-facts">
           <span><b>MACOS</b> / <b>LINUX</b> / <b>WINDOWS</b></span>
           <span><b>MIT</b> LICENSED</span>
           <span><b>MCP</b> COMPATIBLE</span>
@@ -1084,7 +1086,7 @@ function FooterSignal() {
 
   return (
     <div className="footer-signal">
-      <canvas ref={canvasRef} aria-hidden="true" />
+      <canvas ref={canvasRef} />
       <div className="footer-signal-mobile" aria-hidden="true">
         {FOOTER_SIGNAL_LINES.map((line) => <span key={line}>{line}</span>)}
       </div>
@@ -1099,7 +1101,7 @@ function Footer() {
       <div className="footer-inner section-shell">
         <div className="footer-main">
           <FooterSignal />
-          <div className="footer-navigation" role="navigation" aria-label="Footer navigation">
+          <nav className="footer-navigation" aria-label="Footer navigation">
             {footerGroups.map((group) => (
               <div className="footer-group" key={group.label}>
                 <h2>{group.label}</h2>
@@ -1119,7 +1121,7 @@ function Footer() {
                 </ul>
               </div>
             ))}
-          </div>
+          </nav>
         </div>
         <div className="footer-bottom">
           <Logo />

@@ -9,6 +9,10 @@
   ·
   <a href="./CONTRIBUTING.md">Contributing</a>
   ·
+  <a href="./docs/DEVELOPMENT.md">Development</a>
+  ·
+  <a href="./SUPPORT.md">Support</a>
+  ·
   <a href="./packages/web">Landing Page</a>
 </p>
 
@@ -223,10 +227,13 @@ after completion, failure, or interruption.
 
 ## Development
 
+See the [development guide](./docs/DEVELOPMENT.md) for prerequisites, local
+PostgreSQL setup, environment variables, and the full contributor workflow.
+
 Install dependencies:
 
 ```sh
-bun install
+bun install --frozen-lockfile
 ```
 
 Run the API server:
@@ -257,6 +264,12 @@ Run tests:
 
 ```sh
 bun test
+```
+
+Run the complete local quality gate:
+
+```sh
+bun run check
 ```
 
 ## Releases

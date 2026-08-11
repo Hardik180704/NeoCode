@@ -1,3 +1,4 @@
+import type { Dirent } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, extname, parse, posix, resolve } from "node:path";
@@ -95,7 +96,7 @@ async function collectTypeScriptPaths(cwd: string) {
   const paths: string[] = [];
 
   async function visit(projectDirectory: string): Promise<void> {
-    let entries;
+    let entries: Dirent[];
     try {
       entries = await readdir(resolve(cwd, projectDirectory), { withFileTypes: true });
     } catch {

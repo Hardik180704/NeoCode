@@ -6,11 +6,15 @@ contributions are focused, verified, and easy to review.
 
 ## Getting Started
 
-1. Fork the repository and create a feature branch.
-2. Install dependencies:
+Read the [development guide](./docs/DEVELOPMENT.md) for the complete environment,
+database, authentication, and billing setup. The shortest path for documentation,
+shared-library, and landing-page work is:
+
+1. Fork the repository and create a feature branch from `main`.
+2. Install Bun 1.3.13, then install dependencies:
 
    ```sh
-   bun install
+   bun install --frozen-lockfile
    ```
 
 3. Run the part of the project you are changing:
@@ -41,13 +45,15 @@ Before opening a pull request, run the checks that match your change:
 ```sh
 bun test
 bun run build:web
+bun run check
 ```
 
 For CLI or release changes, also run the relevant release smoke checks against a
 built release binary when possible:
 
 ```sh
-bun scripts/smoke-release.ts ./path/to/neocode 0.1.0
+version="$(bun -e 'console.log(require("./packages/cli/package.json").version)')"
+bun run release:smoke -- ./path/to/neocode "$version"
 ```
 
 If you cannot run a check locally, mention that in the pull request and explain
@@ -75,7 +81,8 @@ docs: expand install instructions
 ## Environment Variables
 
 Local development may need environment variables depending on the package being
-run. Keep them in your local `.env` file and do not commit them.
+run. Copy `.env.example` to `.env`, fill only the values needed for your work,
+and never commit the resulting file.
 
 Common variables include:
 
@@ -83,13 +90,18 @@ Common variables include:
 | --- | --- |
 | `API_URL` | CLI API override |
 | `DATABASE_URL` | Server/database runtime |
+| `ANTHROPIC_API_KEY` | Anthropic-backed chat models |
+| `OPENAI_API_KEY` | OpenAI-backed chat models |
 | `CLERK_SECRET_KEY` | Server auth |
 | `CLERK_PUBLISHABLE_KEY` | Server auth |
 | `CLERK_FRONTEND_API` | OAuth config |
 | `CLERK_OAUTH_CLIENT_ID` | OAuth config |
+| `CLERK_OAUTH_CLIENT_SECRET` | OAuth configuration when required by Clerk |
 | `POLAR_ACCESS_TOKEN` | Billing |
 | `POLAR_PRODUCT_ID` | Billing |
 | `POLAR_CREDITS_METER_ID` | Billing |
+| `SENTRY_DSN` | Optional server error reporting |
+| `SENTRY_TRACES_SAMPLE_RATE` | Optional server trace sampling from 0 to 1 |
 
 ## MCP Contributions
 

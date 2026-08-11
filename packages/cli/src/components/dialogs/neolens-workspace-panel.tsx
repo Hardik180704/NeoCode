@@ -310,6 +310,7 @@ export function NeoLensWorkspacePanel({
 }
 
 function sanitizeTerminalText(value: string) {
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: terminal previews must strip unsafe control bytes
   return value.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "�");
 }
 

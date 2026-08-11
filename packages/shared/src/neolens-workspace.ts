@@ -1,3 +1,4 @@
+import type { Dirent } from "node:fs";
 import { lstat, open, readFile, readdir, realpath } from "node:fs/promises";
 import { homedir } from "node:os";
 import { basename, isAbsolute, parse, posix, relative, resolve } from "node:path";
@@ -100,7 +101,7 @@ export async function buildWorkspaceIndex(cwd: string): Promise<NeoLensWorkspace
 
   async function visit(projectDirectory: string, depth: number): Promise<void> {
     if (truncated) return;
-    let directoryEntries;
+    let directoryEntries: Dirent[];
     try {
       directoryEntries = await readdir(resolve(root, projectDirectory), { withFileTypes: true });
     } catch {

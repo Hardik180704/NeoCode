@@ -58,7 +58,7 @@ export async function createMcpRuntime(params: {
   const tools: Record<string, McpDiscoveredTool> = {};
   const warnings: string[] = [];
 
-  let loaded;
+  let loaded: Awaited<ReturnType<typeof loadMcpConfig>>;
   try {
     loaded = await loadMcpConfig(cwd);
   } catch (error) {

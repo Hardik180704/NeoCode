@@ -1,66 +1,31 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
-import { z } from "zod";
 import {
   convertToModelMessages,
   streamText,
   validateUIMessages,
-  type InferUITools,
   type LanguageModelUsage,
-  type UIMessage,
 } from "ai";
 import { db } from "@neocode/database/client";
 import type { Prisma } from "@neocode/database";
-import {
-  getToolContracts,
-  modeSchema,
-  type ModeType,
-  type ToolContracts,
-} from "@neocode/shared";
+import { getToolContracts } from "@neocode/shared";
 import { buildSystemPrompt } from "../system-prompt";
 import type { AuthenticatedEnv } from "../middleware/require-auth";
 import { requireCreditsBalance } from "../middleware/require-credits-balance";
 import { calculateCreditsForUsage } from "../lib/credits";
 import { ingestAiUsage } from "../lib/polar";
-import { isSupportedChatModel, resolveChatModel } from "../lib/models";
-
-type ChatMessageMetadata = {
-  mode?: ModeType;
-  model?: string;
-  durationMs?: number;
-  usage?: LanguageModelUsage;
-};
-
-type NeocodeUIMessage = UIMessage<ChatMessageMetadata, never, InferUITools<ToolContracts>>;
-
-const submitSchema = z.object({
-  id: z.string(),
-  messages: z
-    .array(
-      z.custom<NeocodeUIMessage>((value) => {
-        return value !== null && typeof value === "object" && "id" in value && "parts" in value;
-      }),
-    )
-    .min(1),
-  mode: modeSchema,
-  model: z.string().refine(isSupportedChatModel, "Unsupported model"),
-});
+import { resolveChatModel } from "../lib/models";
+import {
+  hasPendingToolCalls,
+  submitSchema,
+  type NeocodeUIMessage,
+} from "./chat-validation";
 
 const submitValidator = zValidator("json", submitSchema, (result, c) => {
   if(!result.success) {
     return c.json({ error: "Invalid request body" }, 400);
   }
 })
-
-function hasPendingToolCalls(message: NeocodeUIMessage) {
-  return message.parts.some((part) => {
-    if(part.type === "dynamic-tool" || part.type.startsWith("tool-")) {
-      const state = (part as {state?: string}).state;
-      return state !== "output-available" && state !== "output-error";
-    }
-    return false;
-  })
-}
 
 const app = new Hono<AuthenticatedEnv>()
   .post(

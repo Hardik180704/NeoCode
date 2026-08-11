@@ -1,0 +1,11 @@
+# Default maintainer review for every contribution.
+* @Hardik180704
+
+# Security-sensitive and distribution paths.
+/.github/ @Hardik180704
+/install.sh @Hardik180704
+/install.ps1 @Hardik180704
+/packages/server/src/middleware/ @Hardik180704
+/packages/server/src/lib/auth.ts @Hardik180704
+/packages/server/src/lib/polar.ts @Hardik180704
+/scripts/ @Hardik180704
