@@ -70,6 +70,45 @@ Security, and Windows may display a Microsoft Defender SmartScreen warning.
 Published SHA-256 checksums and GitHub attestations can be used to verify each
 download.
 
+## Update NeoCode
+
+Update NeoCode using the same installation method you originally used. Avoid
+mixing Homebrew and standalone installations, as multiple `neocode` binaries on
+your `PATH` can cause an older version to run.
+
+### Homebrew
+
+```sh
+brew update && brew upgrade neocode
+```
+
+### macOS and Linux standalone installer
+
+Rerun the installer to download the latest release and replace the existing
+binary:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Hardik180704/NeoCode/main/install.sh | sh
+```
+
+### Windows PowerShell standalone installer
+
+Rerun the installer, then restart the terminal so the updated executable is
+used:
+
+```powershell
+irm https://raw.githubusercontent.com/Hardik180704/NeoCode/main/install.ps1 | iex
+```
+
+Verify the installed version on any platform:
+
+```sh
+neocode --version
+```
+
+> [!NOTE]
+> The `/upgrade` command manages NeoCode billing. It does not update the CLI.
+
 ## Usage
 
 Start NeoCode from inside any project directory:
