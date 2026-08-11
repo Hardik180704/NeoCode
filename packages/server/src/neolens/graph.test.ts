@@ -3,8 +3,8 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import {
-  buildTypeScriptDependencyGraph,
   assertSafeGraphRoot,
+  buildTypeScriptDependencyGraph,
   extractTypeScriptImports,
   resolveImportPath,
 } from "./graph";
@@ -22,20 +22,28 @@ describe("TypeScript dependency graph", () => {
       const screen = import("./screen");
       const legacy = require('./legacy');
     `);
-    expect(imports.toSorted()).toEqual([
-      "./auth",
-      "./legacy",
-      "./screen",
-      "./types",
-    ]);
+    expect(imports.toSorted()).toEqual(["./auth", "./legacy", "./screen", "./types"]);
+  });
+
+  test("ignores import-like text in comments, strings, and template literals", () => {
+    const imports = extractTypeScriptImports(`
+      // import "./comment";
+      /* export { value } from "./block-comment"; */
+      const message = 'require("./string")';
+      const template = \`import("./template")\`;
+      import "./side-effect";
+    `);
+
+    expect(imports).toEqual(["./side-effect"]);
+  });
+
+  test("handles large untrusted source without regular-expression backtracking", () => {
+    const source = `import { ${"a".repeat(750_000)}`;
+    expect(extractTypeScriptImports(source)).toEqual([]);
   });
 
   test("resolves extensionless and directory imports inside the graph", () => {
-    const files = new Set([
-      "src/auth.ts",
-      "src/components/index.tsx",
-      "src/session.ts",
-    ]);
+    const files = new Set(["src/auth.ts", "src/components/index.tsx", "src/session.ts"]);
     expect(resolveImportPath("src/session.ts", "./auth", files)).toBe("src/auth.ts");
     expect(resolveImportPath("src/session.ts", "./components", files)).toBe(
       "src/components/index.tsx",
