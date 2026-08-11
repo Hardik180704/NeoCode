@@ -41,6 +41,7 @@ const formula = `# typed: strict
 class Neocode < Formula
   desc "AI-powered terminal coding agent"
   homepage "https://github.com/${repository}"
+  version "${version}"
   license "MIT"
 
   on_macos do
