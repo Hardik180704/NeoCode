@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { useChat as useAiChat } from "@ai-sdk/react";
 import {
     DefaultChatTransport,
@@ -25,7 +25,10 @@ function activityEvent(
     input: unknown,
     phase: "started" | "completed",
     failed = false,
+    sessionStartedAt = Date.now(),
+    toolStartedAt?: number,
 ): NeoLensActivityEvent {
+    const timestampMs = Date.now();
     const args = input && typeof input === "object" ? input as Record<string, unknown> : {};
     const filePaths = Object.entries(args)
         .filter(([key, value]) => /^(?:path|file|filePath)$/i.test(key) && typeof value === "string")
@@ -42,8 +45,11 @@ function activityEvent(
         phase,
         status,
         filePaths,
-        timestampMs: Date.now(),
-        offsetMs: 0,
+        timestampMs,
+        offsetMs: Math.max(0, timestampMs - sessionStartedAt),
+        ...(phase === "completed" && toolStartedAt
+            ? { durationMs: Math.max(0, timestampMs - toolStartedAt) }
+            : {}),
         summary: `${status[0]!.toUpperCase()}${status.slice(1)} ${filePaths[0] ?? toolName}`,
     };
 }
@@ -66,6 +72,8 @@ export type Message = UIMessage<ChatMessageMetadata, never, ChatTools>;
 
 export function useChat(sessionId: string, initialMessages: Message[]) {
     const { recordActivity } = useNeoLens();
+    const sessionStartedAt = useRef(Date.now());
+    const toolStartedAt = useRef(new Map<string, number>());
     const transport = useMemo(() => {
         return new DefaultChatTransport<Message>({
             api: apiClient.chat.$url().toString(),
@@ -104,11 +112,15 @@ export function useChat(sessionId: string, initialMessages: Message[]) {
         transport,
         onToolCall({ toolCall }) {
             const mode = chat.messages.at(-1)?.metadata?.mode ?? "BUILD";
+            const startedAt = Date.now();
+            toolStartedAt.current.set(toolCall.toolCallId, startedAt);
             recordActivity(sessionId, activityEvent(
                 toolCall.toolCallId,
                 toolCall.toolName,
                 toolCall.input,
                 "started",
+                false,
+                sessionStartedAt.current,
             ));
 
             void executeLocalTool(toolCall.toolName, toolCall.input, mode)
@@ -118,7 +130,11 @@ export function useChat(sessionId: string, initialMessages: Message[]) {
                         toolCall.toolName,
                         toolCall.input,
                         "completed",
+                        false,
+                        sessionStartedAt.current,
+                        toolStartedAt.current.get(toolCall.toolCallId),
                     ));
+                    toolStartedAt.current.delete(toolCall.toolCallId);
                     return chat.addToolOutput({
                         tool: toolCall.toolName as keyof ChatTools,
                         toolCallId: toolCall.toolCallId,
@@ -132,7 +148,10 @@ export function useChat(sessionId: string, initialMessages: Message[]) {
                     toolCall.input,
                     "completed",
                     true,
+                    sessionStartedAt.current,
+                    toolStartedAt.current.get(toolCall.toolCallId),
                 ));
+                toolStartedAt.current.delete(toolCall.toolCallId);
                 return chat.addToolOutput({
                     tool: toolCall.toolName as keyof ChatTools,
                     toolCallId: toolCall.toolCallId,

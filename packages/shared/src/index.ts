@@ -37,3 +37,17 @@ export {
   type NeoLensGraph,
   type NeoLensGraphEdge,
 } from "./neolens-graph";
+
+export {
+  assertSafeWorkspaceRoot,
+  buildWorkspaceIndex,
+  readWorkspaceFile,
+  searchWorkspace,
+  type NeoLensFilePreview,
+  type NeoLensSearchMatch,
+  type NeoLensSearchResult,
+  type NeoLensWorkspaceEntry,
+  type NeoLensWorkspaceIndex,
+} from "./neolens-workspace";
+
+export const NEOLENS_TRACE_SCHEMA_VERSION = 1 as const;

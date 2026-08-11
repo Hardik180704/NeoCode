@@ -73,6 +73,7 @@ export function createNeoLensActivityTracker(cwd: string, startedAt: number) {
       filePaths,
       timestampMs: Date.now(),
       offsetMs: Math.max(0, Date.now() - startedAt),
+      durationMs: Math.max(0, Date.now() - started.timestampMs),
       summary: createSummary(started.toolName, status, filePaths),
     };
   };
