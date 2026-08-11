@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { db } from "@neocode/database/client";
 import {
+  NEOLENS_TRACE_SCHEMA_VERSION,
   type NeoLensActivityEvent,
   type NeoLensExternalNode,
   type NeoLensFileNode,
@@ -9,6 +10,7 @@ import {
 } from "@neocode/shared";
 import type { AuthenticatedEnv } from "../middleware/require-auth";
 import { inspectMcpServers } from "../mcp/runtime";
+import { collectPersistedMetrics } from "../neolens/metrics";
 
 const app = new Hono<AuthenticatedEnv>().get("/:sessionId", async (c) => {
   const sessionId = c.req.param("sessionId");
@@ -23,6 +25,9 @@ const app = new Hono<AuthenticatedEnv>().get("/:sessionId", async (c) => {
 
   if (!session) return c.json({ error: "Session not found" }, 404);
   const timeline = collectPersistedActivity(
+    Array.isArray(session.messages) ? session.messages : [],
+  );
+  const metrics = collectPersistedMetrics(
     Array.isArray(session.messages) ? session.messages : [],
   );
   const mcpInspection = session.cwd
@@ -50,6 +55,7 @@ const app = new Hono<AuthenticatedEnv>().get("/:sessionId", async (c) => {
   const truncated: boolean = false;
 
   return c.json({
+    traceSchemaVersion: NEOLENS_TRACE_SCHEMA_VERSION,
     cwd: session.cwd ?? "",
     graph: {
       nodes,
@@ -57,6 +63,7 @@ const app = new Hono<AuthenticatedEnv>().get("/:sessionId", async (c) => {
       truncated,
     },
     timeline,
+    metrics,
   });
 });
 

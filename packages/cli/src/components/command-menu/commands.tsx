@@ -61,7 +61,7 @@ export const COMMANDS: Command[] = [
   },
   {
     name: "lens",
-    description: "Watch and replay agent activity across the dependency graph",
+    description: "Explore local code and replay agent activity",
     value: "/lens",
     action: (ctx) => {
       ctx.dialog.open({

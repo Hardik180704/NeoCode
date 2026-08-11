@@ -13,6 +13,7 @@ import { getErrorMessage } from "../../lib/http-errors";
 import { useKeyboardLayer } from "../../providers/keyboard-layer";
 import { useNeoLens } from "../../providers/neolens";
 import { useTheme } from "../../providers/theme";
+import { NeoLensWorkspacePanel } from "./neolens-workspace-panel";
 
 type RemoteNeoLensSnapshot = InferResponseType<
   (typeof apiClient.neolens)[":sessionId"]["$get"],
@@ -27,12 +28,22 @@ type NeoLensSnapshot = Omit<RemoteNeoLensSnapshot, "graph"> & {
     truncated: boolean;
   };
 };
+type NeoLensView = "graph" | "workspace" | "timeline";
 
 const STATUS_ICON: Record<NeoLensFileStatus, string> = {
   inspected: "◉",
   modified: "◆",
   failed: "×",
   verified: "✓",
+};
+const EMPTY_METRICS = {
+  modelRuns: 0,
+  models: [] as string[],
+  inputTokens: 0,
+  outputTokens: 0,
+  totalTokens: 0,
+  durationMs: 0,
+  estimatedCostUsd: 0,
 };
 
 function mergeEvents(
@@ -76,6 +87,8 @@ export function NeoLensDialogContent({ sessionId: explicitSessionId }: { session
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [replayEnabled, setReplayEnabled] = useState(false);
   const [replayIndex, setReplayIndex] = useState(0);
+  const [view, setView] = useState<NeoLensView>("graph");
+  const [workspacePath, setWorkspacePath] = useState<string | null>(null);
   const scrollRef = useRef<ScrollBoxRenderable>(null);
   const { getActivity } = useNeoLens();
   const { isTopLayer } = useKeyboardLayer();
@@ -96,6 +109,9 @@ export function NeoLensDialogContent({ sessionId: explicitSessionId }: { session
       const data = await response.json();
       const merged = {
         ...data,
+        // Keep the CLI usable during a rolling deployment against an older API.
+        traceSchemaVersion: data.traceSchemaVersion ?? 0,
+        metrics: data.metrics ?? EMPTY_METRICS,
         cwd,
         graph: {
           nodes: dedupeById([...localGraph.nodes, ...data.graph.nodes]),
@@ -117,6 +133,10 @@ export function NeoLensDialogContent({ sessionId: explicitSessionId }: { session
   const timeline = useMemo(
     () => mergeEvents(snapshot?.timeline ?? [], liveEvents),
     [snapshot?.timeline, liveEvents],
+  );
+  const activityPaths = useMemo(
+    () => new Set(timeline.flatMap((event) => event.filePaths)),
+    [timeline],
   );
   const visibleEvents = replayEnabled
     ? timeline.slice(0, Math.min(replayIndex + 1, timeline.length))
@@ -175,7 +195,46 @@ export function NeoLensDialogContent({ sessionId: explicitSessionId }: { session
   }, [timeline.length, replayEnabled]);
 
   useKeyboard((key) => {
-    if (!isTopLayer("dialog") || sortedNodes.length === 0) return;
+    if (!isTopLayer("dialog")) return;
+
+    if (key.name === "f1") {
+      key.preventDefault();
+      setView("graph");
+      return;
+    }
+    if (key.name === "f2") {
+      key.preventDefault();
+      setView("workspace");
+      return;
+    }
+    if (key.name === "f3") {
+      key.preventDefault();
+      setView("timeline");
+      return;
+    }
+    if (view === "timeline") {
+      if ((key.name === "up" || key.name === "k") && timeline.length > 0) {
+        key.preventDefault();
+        setReplayEnabled(true);
+        setReplayIndex((current) => Math.max(0, current - 1));
+      } else if ((key.name === "down" || key.name === "j") && timeline.length > 0) {
+        key.preventDefault();
+        setReplayEnabled(true);
+        setReplayIndex((current) => Math.min(timeline.length - 1, current + 1));
+      } else if (key.name === "r") {
+        key.preventDefault();
+        setReplayEnabled((current) => !current);
+      } else if (key.name === "g") {
+        key.preventDefault();
+        void loadSnapshot();
+      } else if ((key.name === "return" || key.name === "enter") && currentEvent?.filePaths[0]) {
+        key.preventDefault();
+        setWorkspacePath(currentEvent.filePaths[0]);
+        setView("workspace");
+      }
+      return;
+    }
+    if (view !== "graph" || sortedNodes.length === 0) return;
 
     if (key.name === "up" || key.name === "k") {
       key.preventDefault();
@@ -204,17 +263,32 @@ export function NeoLensDialogContent({ sessionId: explicitSessionId }: { session
     } else if (key.name === "g") {
       key.preventDefault();
       void loadSnapshot();
+    } else if ((key.name === "return" || key.name === "enter") && selectedNode?.kind === "file") {
+      key.preventDefault();
+      setWorkspacePath(selectedNode.path);
+      setView("workspace");
     }
   });
 
   if (!sessionId) {
-    return <text attributes={TextAttributes.DIM}>Start or open a session to use NeoLens.</text>;
+    return (
+      <box flexDirection="column" flexGrow={1} minHeight={0} gap={1}>
+        <box flexDirection="row" justifyContent="space-between" border={["bottom"]} borderColor={colors.dimSeparator} paddingBottom={1}>
+          <text attributes={TextAttributes.BOLD} fg={colors.primary}>Workspace</text>
+          <text attributes={TextAttributes.DIM}>No active session · local workspace only</text>
+        </box>
+        <NeoLensWorkspacePanel activityPaths={EMPTY_PATHS} />
+      </box>
+    );
   }
   if (error) {
     return (
-      <box flexDirection="column" gap={1}>
-        <text fg={colors.error}>{error}</text>
-        <text attributes={TextAttributes.DIM}>Press g to retry.</text>
+      <box flexDirection="column" flexGrow={1} minHeight={0} gap={1}>
+        <box flexDirection="row" justifyContent="space-between" border={["bottom"]} borderColor={colors.dimSeparator} paddingBottom={1}>
+          <text fg={colors.error}>Activity unavailable: {error}</text>
+          <text attributes={TextAttributes.DIM}>local workspace remains available</text>
+        </box>
+        <NeoLensWorkspacePanel activityPaths={activityPaths} />
       </box>
     );
   }
@@ -224,9 +298,99 @@ export function NeoLensDialogContent({ sessionId: explicitSessionId }: { session
 
   const graphHeight = Math.max(6, dimensions.height - 11);
   const currentEvent = timeline[replayIndex];
+  const completedEvents = timeline.filter((event) => event.phase === "completed");
+  const failedEvents = completedEvents.filter((event) => event.status === "failed");
+  const modifiedPaths = new Set(
+    completedEvents.filter((event) => event.status === "modified").flatMap((event) => event.filePaths),
+  );
+  const fallbackDurationMs = timeline.reduce((maximum, event) => Math.max(maximum, event.offsetMs), 0);
+  const durationMs = snapshot.metrics.durationMs || fallbackDurationMs;
 
   return (
     <box flexDirection="column" flexGrow={1} minHeight={0} gap={1}>
+      <box flexDirection="row" gap={1} border={["bottom"]} borderColor={colors.dimSeparator} paddingBottom={1}>
+        <text
+          fg={view === "graph" ? colors.primary : undefined}
+          attributes={view === "graph" ? TextAttributes.BOLD : TextAttributes.DIM}
+          onMouseDown={() => setView("graph")}
+        >
+          F1 Graph
+        </text>
+        <text attributes={TextAttributes.DIM}>·</text>
+        <text
+          fg={view === "workspace" ? colors.primary : undefined}
+          attributes={view === "workspace" ? TextAttributes.BOLD : TextAttributes.DIM}
+          onMouseDown={() => setView("workspace")}
+        >
+          F2 Workspace
+        </text>
+        <text attributes={TextAttributes.DIM}>·</text>
+        <text
+          fg={view === "timeline" ? colors.primary : undefined}
+          attributes={view === "timeline" ? TextAttributes.BOLD : TextAttributes.DIM}
+          onMouseDown={() => setView("timeline")}
+        >
+          F3 Timeline
+        </text>
+        <box flexGrow={1} />
+        <text attributes={TextAttributes.DIM}>trace v{snapshot.traceSchemaVersion} · local source boundary</text>
+      </box>
+
+      {view === "workspace" ? (
+        <NeoLensWorkspacePanel activityPaths={activityPaths} initialPath={workspacePath} />
+      ) : view === "timeline" ? (
+        <box flexDirection="column" flexGrow={1} minHeight={0} gap={1}>
+          <box flexDirection="row" justifyContent="space-between">
+            <text>
+              <span fg={replayEnabled ? colors.info : colors.success}>● {replayEnabled ? "REPLAY" : "LIVE"}</span>
+              <span attributes={TextAttributes.DIM}>{` · ${completedEvents.length} completed events`}</span>
+            </text>
+            <text attributes={TextAttributes.DIM}>{snapshot.cwd}</text>
+          </box>
+          <box flexDirection="row" gap={3} paddingY={1}>
+            <text><span fg={colors.primary}>{modifiedPaths.size}</span> files changed</text>
+            <text><span fg={failedEvents.length ? colors.error : colors.success}>{failedEvents.length}</span> failures</text>
+            <text><span fg={colors.info}>{formatDuration(durationMs)}</span> elapsed</text>
+            <text><span fg={colors.info}>{formatTokens(snapshot.metrics.totalTokens)}</span> tokens</text>
+            <text><span fg={colors.success}>{formatCost(snapshot.metrics.estimatedCostUsd)}</span> est.</text>
+          </box>
+          <text attributes={TextAttributes.DIM}>
+            {snapshot.metrics.models.length > 0
+              ? `${snapshot.metrics.modelRuns} model runs · ${snapshot.metrics.models.join(", ")} · ${formatTokens(snapshot.metrics.inputTokens)} in / ${formatTokens(snapshot.metrics.outputTokens)} out`
+              : "Model usage will appear after a completed generation."}
+          </text>
+          <scrollbox height={Math.max(6, dimensions.height - 14)}>
+            {timeline.length === 0 ? (
+              <text attributes={TextAttributes.DIM}>Waiting for agent tool activity.</text>
+            ) : timeline.map((event, index) => {
+              const selected = index === replayIndex;
+              const color = event.status === "failed"
+                ? colors.error
+                : event.status === "verified"
+                  ? colors.success
+                  : event.status === "modified"
+                    ? colors.primary
+                    : colors.info;
+              return (
+                <box
+                  key={event.id}
+                  height={1}
+                  paddingX={1}
+                  backgroundColor={selected ? colors.selection : undefined}
+                  onMouseMove={() => setReplayIndex(index)}
+                >
+                  <text selectable={false} fg={selected ? "black" : color}>
+                    {String(index + 1).padStart(3)}  {STATUS_ICON[event.status]} {formatDuration(event.offsetMs).padStart(8)}  {event.summary}
+                    <span attributes={TextAttributes.DIM}> · {event.phase} · {event.toolName}</span>
+                  </text>
+                </box>
+              );
+            })}
+          </scrollbox>
+          <text attributes={TextAttributes.DIM}>↑↓/jk replay events · enter open file · r live/replay · g refresh · F1 graph · F2 workspace</text>
+        </box>
+      ) : (
+      <>
       <box flexDirection="row" justifyContent="space-between">
         <text>
           <span fg={replayEnabled ? colors.info : colors.success}>● {replayEnabled ? "REPLAY" : "LIVE"}</span>
@@ -313,8 +477,30 @@ export function NeoLensDialogContent({ sessionId: explicitSessionId }: { session
           Timeline {timeline.length === 0 ? "0/0" : `${replayIndex + 1}/${timeline.length}`}
           <span attributes={TextAttributes.DIM}> · {currentEvent?.summary ?? "Waiting for agent tool activity"}</span>
         </text>
-        <text attributes={TextAttributes.DIM}>↑↓/jk navigate · ←→ replay · r live/replay · g refresh · esc close</text>
+        <text attributes={TextAttributes.DIM}>↑↓/jk navigate · enter open file · ←→ replay · r live/replay · g refresh · esc close</text>
       </box>
+      </>
+      )}
     </box>
   );
+}
+
+const EMPTY_PATHS = new Set<string>();
+
+function formatDuration(durationMs: number) {
+  if (durationMs < 1_000) return `${durationMs}ms`;
+  const seconds = durationMs / 1_000;
+  if (seconds < 60) return `${seconds.toFixed(seconds < 10 ? 1 : 0)}s`;
+  return `${Math.floor(seconds / 60)}m ${Math.round(seconds % 60)}s`;
+}
+
+function formatTokens(tokens: number) {
+  if (tokens < 1_000) return String(tokens);
+  if (tokens < 1_000_000) return `${(tokens / 1_000).toFixed(tokens < 10_000 ? 1 : 0)}k`;
+  return `${(tokens / 1_000_000).toFixed(1)}m`;
+}
+
+function formatCost(cost: number) {
+  if (cost === 0) return "$0.00";
+  return cost < 0.01 ? `$${cost.toFixed(4)}` : `$${cost.toFixed(2)}`;
 }

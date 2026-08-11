@@ -104,6 +104,7 @@ export const neoLensActivityEventSchema = z.object({
   mcpServer: z.string().optional(),
   timestampMs: z.number().nonnegative(),
   offsetMs: z.number().nonnegative(),
+  durationMs: z.number().nonnegative().optional(),
   summary: z.string(),
 });
 

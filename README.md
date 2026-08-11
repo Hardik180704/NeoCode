@@ -28,7 +28,8 @@ database package, and a Vite-powered landing page.
 - PLAN mode for read-only investigation and BUILD mode for implementation.
 - Persistent sessions that can be reopened from `/sessions`.
 - Model selection, agent switching, login, and themes from the command menu.
-- NeoLens for tracking file activity and dependency context while an agent works.
+- NeoLens for local code exploration, workspace search, dependency context, and
+  replaying agent activity.
 - MCP server discovery through project-local `.neocode/mcp.json`.
 - GitHub Releases for standalone binaries on macOS, Linux, and Windows.
 - Homebrew support for macOS and Linux installs.
@@ -86,7 +87,7 @@ Common commands:
 | `/agents` | Switch between PLAN and BUILD agents |
 | `/models` | Select the AI model |
 | `/sessions` | Browse previous sessions |
-| `/lens` | Open NeoLens activity and dependency context |
+| `/lens` | Explore the local codebase and inspect agent activity |
 | `/mcp` | Inspect configured MCP servers and tool access |
 | `/theme` | Change the terminal theme |
 | `/login` | Sign in through the browser |
@@ -99,18 +100,39 @@ API_URL=http://localhost:3000 neocode
 
 ## NeoLens
 
-NeoLens helps make agent activity inspectable. During a session it tracks file
-reads, edits, checks, failures, and dependency relationships so you can understand
-what changed and why.
+NeoLens is NeoCode's local codebase explorer and execution-inspection workspace.
+It can be opened before a conversation to browse and search the current repository.
+During a session it also tracks file reads, edits, checks, failures, dependency
+relationships, model usage, duration, and estimated generation cost so you can
+understand what changed and why.
 
-Open it from an active session with:
+Open it at any time with:
 
 ```text
 /lens
 ```
 
-NeoLens is intentionally project-scoped. Start NeoCode inside a real repository
-so dependency graphing and file activity can be resolved safely.
+The full-screen interface provides three views:
+
+- **Graph** shows TypeScript dependency relationships and highlights files touched
+  by the agent.
+- **Workspace** provides read-only, line-numbered file previews plus capped filename
+  and content search. Press `/` to search, `Enter` to open a file, `Tab` to switch
+  panes, and `j`/`k` or the arrow keys to navigate.
+- **Timeline** replays tool activity and summarizes changed files, failures, model
+  runs, tokens, elapsed time, and estimated cost.
+
+Use `F1`, `F2`, and `F3` to switch between Graph, Workspace, and Timeline when an
+active session is available. Selecting a file or event and pressing `Enter` opens
+the relevant source file in the Workspace view.
+
+NeoLens is intentionally project-scoped and source stays on the local machine;
+the Railway API receives session activity but does not receive file contents.
+NeoLens respects common generated directories and root `.gitignore` rules, never
+follows symbolic links, hides common credential files, rejects paths outside the
+project, and caps indexing, search, and preview work to remain responsive on large
+repositories. Start NeoCode inside a real repository so local paths can be resolved
+safely.
 
 ## MCP Integrations
 
