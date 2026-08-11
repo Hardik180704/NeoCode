@@ -68,7 +68,7 @@ jobs:
       - name: Install every platform-specific OpenTUI package
         run: bun install --frozen-lockfile --os="*" --cpu="*"
       - run: bun scripts/build-release.ts ${{ matrix.target }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: binary-${{ matrix.artifact }}
           path: artifacts/${{ matrix.artifact }}/neocode*
