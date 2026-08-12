@@ -950,10 +950,10 @@ nav a:hover, nav a:focus-visible { color: var(--primary); }
   .section-shell { width: min(100% - 24px, 720px); }
   .header-inner { width: calc(100% - 24px); height: 64px; }
   .menu-button { display: grid; }
-  nav { position: absolute; top: 64px; right: -12px; left: -12px; display: none; height: auto; flex-direction: column; align-items: stretch; gap: 2px; padding: 10px 12px 18px; border: 1px solid var(--line); border-top: 0; border-radius: 0 0 22px 22px; background: var(--navy); box-shadow: 0 22px 50px rgba(0, 0, 0, .3); }
-  nav.nav-open { display: flex; }
-  nav a { justify-content: space-between; padding: 16px 12px; border-radius: 12px; }
-  nav a:hover, nav a:focus-visible { background: rgba(137, 180, 250, .07); }
+  .site-header nav { position: absolute; top: 64px; right: -12px; left: -12px; display: none; height: auto; flex-direction: column; align-items: stretch; gap: 2px; padding: 10px 12px 18px; border: 1px solid var(--line); border-top: 0; border-radius: 0 0 22px 22px; background: var(--navy); box-shadow: 0 22px 50px rgba(0, 0, 0, .3); }
+  .site-header nav.nav-open { display: flex; }
+  .site-header nav a { justify-content: space-between; padding: 16px 12px; border-radius: 12px; }
+  .site-header nav a:hover, .site-header nav a:focus-visible { background: rgba(137, 180, 250, .07); }
   .nav-github { margin-top: 8px; border: 1px solid var(--line); border-radius: 999px; }
   .hero { min-height: auto; padding: 128px 0 85px; }
   .hero h1 { font-size: clamp(48px, 12vw, 82px); }
