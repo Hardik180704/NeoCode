@@ -1452,7 +1452,7 @@ nav a:not(.nav-github):hover, nav a:not(.nav-github):focus-visible {
 
 @media (max-width: 540px) {
   .brand-wordmark { font-size: 15px; }
-  .hero h1 { font-size: 48px; line-height: .95; }
+  .hero h1 { max-width: 100%; font-size: clamp(34px, 10.5vw, 48px); line-height: .98; }
   .hero-copy > p { font-size: 15px; }
   .hero-actions { flex-direction: column; }
   .hero-mockup { margin-top: 42px; }
