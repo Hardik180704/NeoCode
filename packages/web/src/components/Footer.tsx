@@ -212,7 +212,7 @@ function FooterSignal() {
 
   return (
     <div className="footer-signal">
-      <canvas ref={canvasRef} aria-hidden="true" />
+      <canvas ref={canvasRef} />
       <div className="footer-signal-mobile" aria-hidden="true">
         {FOOTER_SIGNAL_LINES.map((line) => <span key={line}>{line}</span>)}
       </div>
@@ -227,7 +227,7 @@ export function Footer() {
       <div className="footer-inner section-shell">
         <div className="footer-main">
           <FooterSignal />
-          <div className="footer-navigation" role="navigation" aria-label="Footer navigation">
+          <nav className="footer-navigation" aria-label="Footer navigation">
             {footerGroups.map((group) => (
               <div className="footer-group" key={group.label}>
                 <h2>{group.label}</h2>
@@ -247,7 +247,7 @@ export function Footer() {
                 </ul>
               </div>
             ))}
-          </div>
+          </nav>
         </div>
         <div className="footer-bottom">
           <Logo />

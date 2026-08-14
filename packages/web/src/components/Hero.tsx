@@ -72,12 +72,6 @@ export function NeoCodeHeroTerminal() {
   const started = inView && !reduceMotion;
 
   useEffect(() => {
-    setPhase("typing");
-    setCharCount(0);
-    setFileCount(0);
-  }, [scenarioKey]);
-
-  useEffect(() => {
     if (!started) return;
     let timer: number;
     if (phase === "typing") {
@@ -96,7 +90,7 @@ export function NeoCodeHeroTerminal() {
       timer = window.setTimeout(() => setPhase("done"), 500);
     }
     return () => window.clearTimeout(timer);
-  }, [started, phase, charCount, fileCount, scenarioKey, scenario.prompt.length, scenario.files.length]);
+  }, [started, phase, charCount, fileCount, scenario.prompt.length, scenario.files.length]);
 
   const rank = heroTerminalPhaseRank[phase];
   const typedText = reduceMotion ? scenario.prompt : scenario.prompt.slice(0, charCount);
@@ -115,7 +109,7 @@ export function NeoCodeHeroTerminal() {
   return (
     <MockupStage variant="hero" className="hero-terminal-stage">
       <div className="hero-mockup-composition">
-        <div ref={containerRef} className="hero-terminal" aria-label="NeoCode terminal session">
+        <div ref={containerRef} className="hero-terminal" role="img" aria-label="NeoCode terminal session">
         <div className="ht-header" aria-hidden="true">
           <div className="ht-dots"><i /><i /><i /></div>
           <span className="ht-path">neocode — terminal</span>
@@ -165,7 +159,8 @@ export function NeoCodeHeroTerminal() {
         </div>
         </div>
 
-        <div className="theme-picker-bar hero-scenario-bar" role="group" aria-label="Terminal examples">
+        <fieldset className="theme-picker-bar hero-scenario-bar">
+        <legend className="sr-only">Terminal examples</legend>
         {(["payment", "lens", "mcp", "sessions"] as const).map((key) => {
           const labels = {
             payment: "Find Payment Retry",
@@ -186,7 +181,7 @@ export function NeoCodeHeroTerminal() {
             </button>
           );
         })}
-        </div>
+        </fieldset>
       </div>
     </MockupStage>
   );
@@ -362,7 +357,7 @@ function HeroBackdrop() {
     };
   }, [reduceMotion]);
 
-  return <canvas ref={canvasRef} className="hero-pixels" aria-hidden="true" />;
+  return <canvas ref={canvasRef} className="hero-pixels" />;
 }
 
 export function Hero() {

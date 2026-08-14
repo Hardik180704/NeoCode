@@ -524,6 +524,7 @@ nav a:not(.nav-github):hover, nav a:not(.nav-github):focus-visible {
 }
 
 .hero-scenario-bar { width: max-content; max-width: 100%; justify-self: center; overflow-x: auto; scrollbar-width: none; }
+.hero-scenario-bar { min-width: 0; margin: 0; border: 0; }
 .hero-scenario-bar::-webkit-scrollbar { display: none; }
 
 .theme-chip {
@@ -1559,6 +1560,8 @@ nav a:not(.nav-github):hover, nav a:not(.nav-github):focus-visible {
   border: 1px solid var(--mockup-border);
   border-radius: 999px;
   background: rgba(5, 8, 16, 0.38);
+  min-width: 0;
+  margin: 0;
 }
 
 .pb-mode {

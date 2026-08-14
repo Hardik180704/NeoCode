@@ -70,7 +70,7 @@ function NeoCodeCommandPalette() {
 
   return (
     <MacFrame scene="monolith" title="neocode — commands" variant="scene-commands">
-      <div ref={containerRef} className="terminal-canvas command-mockup palette-mockup" aria-label="NeoCode slash-command palette">
+      <div ref={containerRef} className="terminal-canvas command-mockup palette-mockup" role="img" aria-label="NeoCode slash-command palette">
         <div className="palette-backdrop" aria-hidden="true">
           <div>Thinking: Let me explore the project structure to understand what this project contains.</div>
           <div>Read File: README.md</div>
@@ -198,7 +198,7 @@ function ActivityMockup() {
 
   return (
     <MacFrame scene="alpine" title="neocode — session" variant="scene-activity">
-      <div ref={canvasRef} className="terminal-canvas activity-mockup" aria-label="NeoCode tool activity interface">
+      <div ref={canvasRef} className="terminal-canvas activity-mockup" role="img" aria-label="NeoCode tool activity interface">
         <div className="activity-stream">
           <AnimatePresence initial={false} mode="popLayout">
             <motion.div className="activity-loop" key={loop} initial={false} exit={{ opacity: 0 }} transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>
@@ -318,15 +318,15 @@ function AnalysisMockup() {
       stream.scrollTo({ top: stream.scrollHeight, behavior: "smooth" });
     }, 80);
     return () => window.clearTimeout(timer);
-  }, [loop, reduceMotion, step]);
+  }, [reduceMotion, step]);
 
   const visibleStep = reduceMotion ? ANALYSIS_LAST_STEP : step;
   const scrollProgress = reduceMotion ? 0 : visibleStep / ANALYSIS_LAST_STEP;
 
   return (
     <MacFrame scene="monolith" title="neocode — analysis" variant="scene-analysis">
-      <div ref={canvasRef} className="terminal-canvas analysis-mockup" aria-label="NeoCode repository analysis response">
-        <div ref={streamRef} className="an-stream" tabIndex={0} aria-label="Repository analysis details">
+      <section ref={canvasRef} className="terminal-canvas analysis-mockup" aria-label="NeoCode repository analysis response">
+        <div ref={streamRef} className="an-stream">
           <motion.div className="an-sequence" key={loop} initial={false}>
             <AnalysisBlock reduceMotion={reduceMotion} className="an-thinking">
               <em>Thinking:</em>
@@ -372,7 +372,7 @@ function AnalysisMockup() {
         <div className="mock-scroll" aria-hidden="true">
           <i style={{ top: `calc(${(scrollProgress * 100).toFixed(2)}% - ${(scrollProgress * 32).toFixed(2)}px)` }} />
         </div>
-      </div>
+      </section>
     </MacFrame>
   );
 }
@@ -403,7 +403,7 @@ function ThemeMockup() {
 
   return (
     <MacFrame scene="alpine" title="neocode — theme" variant="scene-theme">
-      <div ref={canvasRef} className="terminal-canvas theme-mockup" style={style} aria-label="Animated NeoCode theme selector">
+      <section ref={canvasRef} className="terminal-canvas theme-mockup" style={style} aria-label="Animated NeoCode theme selector">
         <div className="theme-background-copy" aria-hidden="true">
           <span>## Project Overview</span>
           <span>This repository contains an MCP learning project.</span>
@@ -451,7 +451,7 @@ function ThemeMockup() {
           </div>
         </div>
         <TerminalInput />
-      </div>
+      </section>
     </MacFrame>
   );
 }
@@ -538,10 +538,11 @@ function PlanBuildMockup() {
       setMode((current) => current === "plan" ? "build" : "plan");
     }, 3200);
     return () => window.clearTimeout(timer);
-  }, [autoPlay, inView, mode, reduceMotion]);
+  }, [autoPlay, inView, reduceMotion]);
 
   useEffect(() => {
     if (autoPlay || reduceMotion) return;
+    if (manualRevision === 0) return;
     const timer = window.setTimeout(() => setAutoPlay(true), 6000);
     return () => window.clearTimeout(timer);
   }, [autoPlay, manualRevision, reduceMotion]);
@@ -583,10 +584,11 @@ function PlanBuildMockup() {
 
   return (
     <MacFrame scene="monolith" title="neocode — plan & build" variant="scene-plan-build">
-      <div ref={canvasRef} className="terminal-canvas plan-build-mockup-inner" aria-label="NeoCode plan and build modes">
+      <section ref={canvasRef} className="terminal-canvas plan-build-mockup-inner" aria-label="NeoCode plan and build modes">
         <div className="pb-topbar">
           <div className="pb-brand"><BrandWordmark /></div>
-          <div className="pb-mode-switch" role="group" aria-label="Mode selector">
+          <fieldset className="pb-mode-switch">
+            <legend className="sr-only">Mode selector</legend>
             {(["plan", "build"] as const).map((value) => (
               <button
                 type="button"
@@ -603,7 +605,7 @@ function PlanBuildMockup() {
                 <span>{value.toUpperCase()}</span>
               </button>
             ))}
-          </div>
+          </fieldset>
           <div className="pb-connection"><span>Claude</span><em><i />Connected</em></div>
         </div>
         <div className="pb-body">
@@ -642,7 +644,7 @@ function PlanBuildMockup() {
             </AnimatePresence>
           )}
         </div>
-      </div>
+      </section>
     </MacFrame>
   );
 }
