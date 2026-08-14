@@ -12,24 +12,22 @@ import billing from "./routes/billing";
 
 const app = new Hono();
 
-app.use(
-  sentry(app, {
-    dsn: "https://ed4be58f4d5796b02b049717723360b6@o4511733229092864.ingest.us.sentry.io/4511733240758272",
-    tracesSampleRate: 1.0,
-    enableLogs: true,
-    sendDefaultPii: true,
-  }),
-);
+const sentryDsn = process.env.SENTRY_DSN;
+if (sentryDsn) {
+  const configuredSampleRate = Number(process.env.SENTRY_TRACES_SAMPLE_RATE ?? "0.1");
+  const tracesSampleRate = Number.isFinite(configuredSampleRate)
+    ? Math.min(1, Math.max(0, configuredSampleRate))
+    : 0.1;
 
-app.get("/debug-sentry", () => {
-  // Send a log before throwing the error
-  Sentry.logger.info('User triggered test error', {
-    action: 'test_error_endpoint',
-  });
-  // Send a test metric before throwing the error
-  Sentry.metrics.count('test_counter', 1);
-  throw new Error("My first Sentry error!");
-});
+  app.use(
+    sentry(app, {
+      dsn: sentryDsn,
+      tracesSampleRate,
+      enableLogs: true,
+      sendDefaultPii: false,
+    }),
+  );
+}
 
 
 app.onError((error, c) => {

@@ -7,7 +7,8 @@
     "./client": "./src/client.ts"
   },
   "scripts": {
-    "db:generate": "bunx prisma generate"
+    "db:generate": "bunx prisma generate",
+    "db:push": "bunx prisma db push"
   },
   "devDependencies": {
     "@types/bun": "latest",

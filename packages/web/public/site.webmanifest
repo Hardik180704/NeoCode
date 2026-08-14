@@ -1,0 +1,17 @@
+{
+  "name": "NeoCode",
+  "short_name": "NeoCode",
+  "description": "Open-source terminal coding agent for complex repositories.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#040b1b",
+  "theme_color": "#040b1b",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

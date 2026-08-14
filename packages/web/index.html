@@ -4,10 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#01040d" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="author" content="NeoCode contributors" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <meta
       name="description"
-      content="NeoCode is an open-source, terminal-native coding agent with repository tools, PLAN and BUILD modes, persistent sessions, MCP integrations, and NeoLens codebase intelligence."
+      content="NeoCode is an open-source terminal coding agent for understanding repositories, inspecting files, planning changes, and writing code with MCP tools."
     />
+    <link rel="canonical" href="https://neocode.in/" />
+    <link rel="manifest" href="/site.webmanifest" />
     <meta property="og:site_name" content="NeoCode" />
     <meta property="og:title" content="NeoCode — Code from your terminal" />
     <meta
@@ -15,10 +20,10 @@
       content="Ask questions, inspect files, plan changes, and build without leaving your terminal."
     />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://github.com/Hardik180704/NeoCode" />
+    <meta property="og:url" content="https://neocode.in/" />
     <meta
       property="og:image"
-      content="https://raw.githubusercontent.com/Hardik180704/NeoCode/main/packages/web/public/og-image.png"
+      content="https://neocode.in/og-image.png"
     />
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
@@ -32,11 +37,40 @@
     />
     <meta
       name="twitter:image"
-      content="https://raw.githubusercontent.com/Hardik180704/NeoCode/main/packages/web/public/og-image.png"
+      content="https://neocode.in/og-image.png"
     />
     <meta name="twitter:image:alt" content="NeoCode terminal coding agent interface" />
     <link rel="icon" type="image/svg+xml" sizes="any" href="/favicon.svg" />
-    <title>NeoCode — Open-source terminal coding agent</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://neocode.in/#website",
+            "url": "https://neocode.in/",
+            "name": "NeoCode",
+            "description": "An open-source terminal coding agent for complex repositories.",
+            "inLanguage": "en"
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://neocode.in/#software",
+            "name": "NeoCode",
+            "url": "https://neocode.in/",
+            "downloadUrl": "https://github.com/Hardik180704/NeoCode/releases",
+            "codeRepository": "https://github.com/Hardik180704/NeoCode",
+            "description": "Open-source terminal coding agent with repository analysis, visible tool execution, persistent sessions, MCP integrations, and NeoLens codebase intelligence.",
+            "applicationCategory": "DeveloperApplication",
+            "operatingSystem": "macOS, Linux, Windows",
+            "softwareVersion": "0.2.0",
+            "license": "https://opensource.org/license/mit",
+            "isAccessibleForFree": true
+          }
+        ]
+      }
+    </script>
+    <title>NeoCode: Open-Source Terminal Coding Agent</title>
   </head>
   <body>
     <div id="root"></div>

@@ -1,0 +1,69 @@
+name: Bug report
+description: Report a reproducible problem in NeoCode
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve NeoCode. Remove secrets and personal data from all logs.
+  - type: input
+    id: version
+    attributes:
+      label: NeoCode version
+      description: Run `neocode --version`.
+      placeholder: neocode 0.2.0
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: Installation method
+      options:
+        - Homebrew
+        - macOS/Linux install script
+        - Windows PowerShell install script
+        - GitHub Release archive
+        - Local development checkout
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Operating system and architecture
+      placeholder: macOS 15 arm64, Ubuntu 24.04 x64, or Windows 11 x64
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem
+      description: What happened, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      placeholder: |
+        1. Start NeoCode in ...
+        2. Run ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output
+      description: Paste sanitized terminal output or attach screenshots.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmation
+      options:
+        - label: I searched existing issues for duplicates.
+          required: true
+        - label: I removed credentials, tokens, private source code, and personal data.
+          required: true
+        - label: This is not an undisclosed security vulnerability.
+          required: true

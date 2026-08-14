@@ -9,6 +9,10 @@
   ·
   <a href="./CONTRIBUTING.md">Contributing</a>
   ·
+  <a href="./docs/DEVELOPMENT.md">Development</a>
+  ·
+  <a href="./SUPPORT.md">Support</a>
+  ·
   <a href="./packages/web">Landing Page</a>
 </p>
 
@@ -69,6 +73,45 @@ Current binaries are unsigned. macOS may require manual approval in Privacy &
 Security, and Windows may display a Microsoft Defender SmartScreen warning.
 Published SHA-256 checksums and GitHub attestations can be used to verify each
 download.
+
+## Update NeoCode
+
+Update NeoCode using the same installation method you originally used. Avoid
+mixing Homebrew and standalone installations, as multiple `neocode` binaries on
+your `PATH` can cause an older version to run.
+
+### Homebrew
+
+```sh
+brew update && brew upgrade neocode
+```
+
+### macOS and Linux standalone installer
+
+Rerun the installer to download the latest release and replace the existing
+binary:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Hardik180704/NeoCode/main/install.sh | sh
+```
+
+### Windows PowerShell standalone installer
+
+Rerun the installer, then restart the terminal so the updated executable is
+used:
+
+```powershell
+irm https://raw.githubusercontent.com/Hardik180704/NeoCode/main/install.ps1 | iex
+```
+
+Verify the installed version on any platform:
+
+```sh
+neocode --version
+```
+
+> [!NOTE]
+> The `/upgrade` command manages NeoCode billing. It does not update the CLI.
 
 ## Usage
 
@@ -184,10 +227,13 @@ after completion, failure, or interruption.
 
 ## Development
 
+See the [development guide](./docs/DEVELOPMENT.md) for prerequisites, local
+PostgreSQL setup, environment variables, and the full contributor workflow.
+
 Install dependencies:
 
 ```sh
-bun install
+bun install --frozen-lockfile
 ```
 
 Run the API server:
@@ -218,6 +264,12 @@ Run tests:
 
 ```sh
 bun test
+```
+
+Run the complete local quality gate:
+
+```sh
+bun run check
 ```
 
 ## Releases
