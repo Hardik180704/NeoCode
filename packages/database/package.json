@@ -11,7 +11,7 @@
     "db:push": "bunx prisma db push"
   },
   "devDependencies": {
-    "@types/bun": "latest",
+    "@types/bun": "1.3.14",
     "@types/node": "^26.1.1",
     "prisma": "^7.8.0"
   },
