@@ -24,7 +24,7 @@
     "release:smoke": "bun scripts/smoke-release.ts"
   },
   "dependencies": {
-    "dotenv": "^17.4.2"
+    "dotenv": "^18.0.0"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.8",
